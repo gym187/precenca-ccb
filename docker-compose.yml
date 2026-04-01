@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: ccb_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ccb
+      MYSQL_USER: ccb_user
+      MYSQL_PASSWORD: ccb_pass
+    # ports:
+    #   - "3307:3306"  # Descomente apenas para debug local
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ccb_frontend
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "8080:80"
+
+  app:
+    build: .
+    container_name: ccb_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://ccb_user:ccb_pass@db:3306/ccb
+      JWT_SECRET: ${JWT_SECRET:-troque_esta_chave_em_producao}
+      JWT_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  db_data:
+  uploads_data:

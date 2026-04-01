@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Usuário ────────────────────────────────────────────────────────────────
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  criadoEm DateTime @default(now())
+
+  roles         UsuarioRole[]
+  presencas     Presenca[]            @relation("PresencaCriador")
+  auditorias    AuditoriaPresenca[]   @relation("AuditoriaAlterador")
+  continuacoes  UsuarioContinuacao[]
+  auxiliarEm    AuxiliarContinuacao[]
+
+  @@map("usuarios")
+}
+
+// ─── Role (Perfil) ───────────────────────────────────────────────────────────
+
+model Role {
+  id   String  @id @default(uuid())
+  nome String  @unique
+  fixa Boolean @default(false)
+
+  usuarios   UsuarioRole[]
+  permissoes RolePermissao[]
+
+  @@map("roles")
+}
+
+// ─── Permissão ───────────────────────────────────────────────────────────────
+
+model Permissao {
+  id   String @id @default(uuid())
+  nome String @unique
+
+  roles RolePermissao[]
+
+  @@map("permissoes")
+}
+
+// ─── Relacionamentos RBAC ────────────────────────────────────────────────────
+
+model UsuarioRole {
+  usuarioId String
+  roleId    String
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, roleId])
+  @@map("usuario_roles")
+}
+
+model RolePermissao {
+  roleId      String
+  permissaoId String
+
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissao Permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissaoId])
+  @@map("role_permissoes")
+}
+
+// ─── Continuação ─────────────────────────────────────────────────────────────
+
+model Continuacao {
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+
+  auxiliares            AuxiliarContinuacao[]
+  criancas              Crianca[]
+  transferenciasOrigem  Transferencia[]     @relation("TransferenciaOrigem")
+  transferenciasDestino Transferencia[]     @relation("TransferenciaDestino")
+  usuarios              UsuarioContinuacao[]
+
+  @@map("continuacoes")
+}
+
+// ─── Auxiliar ↔ Continuação (muitos-para-muitos) ─────────────────────────────
+
+model AuxiliarContinuacao {
+  usuarioId     String
+  continuacaoId String
+
+  usuario     Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  continuacao Continuacao @relation(fields: [continuacaoId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, continuacaoId])
+  @@map("auxiliar_continuacoes")
+}
+
+// ─── Usuário ↔ Continuação (acesso por grupo) ────────────────────────────────
+
+model UsuarioContinuacao {
+  usuarioId     String
+  continuacaoId String
+
+  usuario     Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  continuacao Continuacao @relation(fields: [continuacaoId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, continuacaoId])
+  @@map("usuario_continuacoes")
+}
+
+// ─── Criança ─────────────────────────────────────────────────────────────────
+
+model Crianca {
+  id                  String   @id @default(uuid())
+  nomeCompleto        String
+  dataNascimento      DateTime @db.Date
+  foto                String?
+  nomeResponsavel     String
+  telefoneResponsavel String
+  telefoneCrianca     String?
+  descricao           String?  @db.Text
+  continuacaoId       String
+  ativo               Boolean  @default(true)
+
+  continuacao    Continuacao     @relation(fields: [continuacaoId], references: [id])
+  presencas      Presenca[]
+  transferencias Transferencia[]
+
+  @@map("criancas")
+}
+
+// ─── Transferência ───────────────────────────────────────────────────────────
+
+model Transferencia {
+  id                   String   @id @default(uuid())
+  criancaId            String
+  continuacaoOrigemId  String
+  continuacaoDestinoId String
+  dataTransferencia    DateTime @db.Date
+
+  crianca             Crianca     @relation(fields: [criancaId], references: [id])
+  continuacaoOrigem   Continuacao @relation("TransferenciaOrigem", fields: [continuacaoOrigemId], references: [id])
+  continuacaoDestino  Continuacao @relation("TransferenciaDestino", fields: [continuacaoDestinoId], references: [id])
+
+  @@map("transferencias")
+}
+
+// ─── Presença ─────────────────────────────────────────────────────────────────
+
+model Presenca {
+  id          String   @id @default(uuid())
+  criancaId   String
+  data        DateTime @db.Date
+  tipoReuniao String   @default("reuniao_jovens")
+  status      String   // "presente" | "ausente" | "justificado"
+  observacao  String?  @db.Text
+  criadoPor   String
+  criadoEm   DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  crianca    Crianca             @relation(fields: [criancaId], references: [id])
+  criador    Usuario             @relation("PresencaCriador", fields: [criadoPor], references: [id])
+  auditorias AuditoriaPresenca[]
+
+  @@unique([criancaId, data])
+  @@map("presencas")
+}
+
+// ─── Auditoria de Presença ───────────────────────────────────────────────────
+
+model AuditoriaPresenca {
+  id          String   @id @default(uuid())
+  presencaId  String
+  alteradoPor String
+  alteracao   String   @db.Text
+  data        DateTime @default(now())
+
+  presenca Presenca @relation(fields: [presencaId], references: [id])
+  usuario  Usuario  @relation("AuditoriaAlterador", fields: [alteradoPor], references: [id])
+
+  @@map("auditoria_presencas")
+}
