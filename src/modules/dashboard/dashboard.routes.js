@@ -14,7 +14,7 @@ router.get('/continuacao/:continuacaoId', controller.resumoContinuacao);
 // GET /api/dashboard/aniversariantes?mes=1-12&continuacaoId=...
 router.get('/aniversariantes', controller.aniversariantes);
 
-// GET /api/dashboard/faltas-consecutivas?continuacaoId=...&minFaltas=2
+// GET /api/dashboard/faltas-consecutivas?continuacaoId=...&minFaltas=3 (janela 30 dias)
 router.get('/faltas-consecutivas', controller.faltasNoPeriodo);
 
 module.exports = router;
