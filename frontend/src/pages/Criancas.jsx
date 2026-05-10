@@ -196,6 +196,7 @@ export default function Criancas() {
         dataTransferencia: formTransf.dataTransferencia || undefined,
       })
       success('Criança transferida com sucesso.')
+      setEditando((prev) => ({ ...prev, continuacaoId: formTransf.continuacaoDestinoId }))
       fetchCriancas()
       setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
       const r = await api.get(`/transferencias/crianca/${editando.id}`)
