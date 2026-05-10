@@ -8,6 +8,7 @@ import {
   LogOut,
   Cross,
   FileText,
+  MapPin,
   Sun,
   Moon,
   X,
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/criancas', label: 'Jovens e Menores', icon: Baby },
   { to: '/continuacoes', label: 'Continuações', icon: Building2 },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
+  { to: '/visitas', label: 'Visitas', icon: MapPin },
   { to: '/usuarios', label: 'Usuários', icon: Users, adminOnly: true },
 ]
 
