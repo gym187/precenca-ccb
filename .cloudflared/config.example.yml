@@ -1,0 +1,15 @@
+# Cloudflare Tunnel — Configuração para CCB Presença
+#
+# Copie para ~/.cloudflared/config.yml no servidor de produção.
+# Substitua SEU-UUID-AQUI e seudominio.com.br pelos valores reais.
+#
+# O nginx do container frontend já faz proxy de /api para o backend
+# internamente, por isso um único subdomínio é suficiente.
+
+tunnel: SEU-UUID-AQUI
+credentials-file: /root/.cloudflared/SEU-UUID-AQUI.json
+
+ingress:
+  - hostname: presenca.seudominio.com.br
+    service: http://localhost:80
+  - service: http_status:404
