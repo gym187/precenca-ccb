@@ -608,7 +608,24 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs text-stone-400 dark:text-stone-500">Telefone</p>
-                  <p className="text-sm text-stone-700 dark:text-stone-200">{criancaDetalhe.crianca?.telefoneResponsavel}</p>
+                  {criancaDetalhe.crianca?.telefoneResponsavel ? (() => {
+                    const tel = criancaDetalhe.crianca.telefoneResponsavel.replace(/\D/g, '')
+                    const msg = encodeURIComponent(`Paz de Deus ${criancaDetalhe.crianca.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${criancaDetalhe.crianca.nomeCompleto}, podemos conversar?`)
+                    return (
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-stone-700 dark:text-stone-200">{criancaDetalhe.crianca.telefoneResponsavel}</p>
+                        <a
+                          href={`https://wa.me/55${tel}?text=${msg}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Enviar WhatsApp"
+                          className="text-emerald-500 hover:text-emerald-600 transition-colors"
+                        >
+                          <MessageCircle size={15} />
+                        </a>
+                      </div>
+                    )
+                  })() : <p className="text-sm text-stone-400">—</p>}
                 </div>
               </div>
 
