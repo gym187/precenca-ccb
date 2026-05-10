@@ -54,7 +54,9 @@ export default function Visitas() {
       api.get('/criancas?ativo=true').then((r) => setCriancas(r.data)),
       api.get('/usuarios').then((r) => setUsuarios(r.data)),
       api.get('/continuacoes/todas').then((r) => setContinuacoes(r.data)),
-    ]).finally(() => setLoading(false))
+    ])
+      .catch(() => error('Erro ao carregar dados iniciais.'))
+      .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
@@ -260,7 +262,7 @@ export default function Visitas() {
               </div>
               <div>
                 <label className="label">Hora *</label>
-                <input className="input" type="text" name="hora" value={form.hora} onChange={handleForm} placeholder="14:00" required />
+                <input className="input" type="text" name="hora" value={form.hora} onChange={handleForm} placeholder="14:00" pattern="\d{2}:\d{2}" title="Hora no formato HH:MM (ex: 14:00)" required />
               </div>
               <div className="sm:col-span-2">
                 <label className="label">Endereço *</label>
@@ -304,7 +306,7 @@ export default function Visitas() {
         <Modal title="Remover visita" onClose={() => setConfirmarDeletar(null)} size="sm">
           <p className="text-sm text-stone-600 mb-5">
             Deseja remover a visita de <strong>{confirmarDeletar.crianca?.nomeCompleto}</strong> em{' '}
-            {new Date(confirmarDeletar.data + 'T00:00:00').toLocaleDateString('pt-BR')}?
+            {new Date(confirmarDeletar.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')}?
           </p>
           <div className="flex justify-end gap-3">
             <button onClick={() => setConfirmarDeletar(null)} className="btn-secondary">Cancelar</button>
