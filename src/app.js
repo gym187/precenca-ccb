@@ -14,6 +14,7 @@ const presencaRoutes = require('./modules/presencas/presenca.routes');
 const transferenciaRoutes = require('./modules/transferencias/transferencia.routes');
 const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const relatorioRoutes = require('./modules/relatorios/relatorio.routes');
+const visitaRoutes = require('./modules/visitas/visita.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/presencas', presencaRoutes);
 app.use('/api/transferencias', transferenciaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/relatorios', relatorioRoutes);
+app.use('/api/visitas', visitaRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
