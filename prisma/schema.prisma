@@ -20,11 +20,13 @@ model Usuario {
   senha     String
   criadoEm DateTime @default(now())
 
-  roles         UsuarioRole[]
-  presencas     Presenca[]            @relation("PresencaCriador")
-  auditorias    AuditoriaPresenca[]   @relation("AuditoriaAlterador")
-  continuacoes  UsuarioContinuacao[]
-  auxiliarEm    AuxiliarContinuacao[]
+  roles              UsuarioRole[]
+  presencas          Presenca[]            @relation("PresencaCriador")
+  auditorias         AuditoriaPresenca[]   @relation("AuditoriaAlterador")
+  continuacoes       UsuarioContinuacao[]
+  auxiliarEm         AuxiliarContinuacao[]
+  visitasResponsavel Visita[]              @relation("VisitaResponsavel")
+  visitasCriadas     Visita[]              @relation("VisitaCriador")
 
   @@map("usuarios")
 }
@@ -136,6 +138,7 @@ model Crianca {
   continuacao    Continuacao     @relation(fields: [continuacaoId], references: [id])
   presencas      Presenca[]
   transferencias Transferencia[]
+  visitas        Visita[]
 
   @@map("criancas")
 }
@@ -175,6 +178,27 @@ model Presenca {
 
   @@unique([criancaId, data])
   @@map("presencas")
+}
+
+// ─── Visita ───────────────────────────────────────────────────────────────────
+
+model Visita {
+  id            String   @id @default(uuid())
+  criancaId     String
+  data          DateTime @db.Date
+  hora          String
+  endereco      String
+  responsavelId String
+  observacao    String?  @db.Text
+  status        String   @default("pendente")
+  criadoPor     String
+  criadoEm      DateTime @default(now())
+
+  crianca     Crianca @relation(fields: [criancaId], references: [id])
+  responsavel Usuario @relation("VisitaResponsavel", fields: [responsavelId], references: [id])
+  criador     Usuario @relation("VisitaCriador", fields: [criadoPor], references: [id])
+
+  @@map("visitas")
 }
 
 // ─── Auditoria de Presença ───────────────────────────────────────────────────

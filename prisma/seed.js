@@ -22,6 +22,7 @@ const PERMISSOES = [
   'gerenciar_roles',
   'gerenciar_permissoes',
   'gerenciar_continuacoes',
+  'gerenciar_visitas',
 ];
 
 // ─── Continuações de exemplo ─────────────────────────────────────────────────
@@ -82,6 +83,7 @@ async function main() {
     'editar_presenca',
     'visualizar_dashboard',
     'gerenciar_criancas',
+    'gerenciar_visitas',
   ];
   for (const nomePerm of permsOperador) {
     const p = permissoesCriadas[nomePerm];
