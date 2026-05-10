@@ -67,7 +67,7 @@ const lancarLista = async ({ data, tipoReuniao, presencas }, usuarioId, usuario)
     ...toUpdate.map(({ existente, item }) =>
       prisma.presenca.update({
         where: { id: existente.id },
-        data: { status: item.status, observacao: item.observacao ?? null },
+        data: { status: item.status, observacao: item.observacao ?? null, criadoPor: usuarioId },
       })
     ),
     ...toUpdate.map(({ existente, item }) =>

@@ -451,7 +451,7 @@ const gerarCsv = async (continuacaoId, { periodo } = {}, usuario, res) => {
 
   const escapar = (v) => `"${String(v).replace(/"/g, '""')}"`;
 
-  const header = 'Nome,Continuação,Presenças,Faltas,Justificados,Total,% Presença\n';
+  const header = '﻿Nome,Continuação,Presenças,Faltas,Justificados,Total,% Presença\n';
   const linhas = dados.linhas.map((l) =>
     [
       escapar(l.nomeCompleto),
