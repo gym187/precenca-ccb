@@ -20,4 +20,9 @@ const auditoria = async (req, res) => {
   res.json(data);
 };
 
-module.exports = { lancarLista, editar, listar, auditoria };
+const getDatas = async (req, res) => {
+  const data = await service.listarDatas(req.query, req.usuario);
+  res.json(data);
+};
+
+module.exports = { lancarLista, editar, listar, auditoria, getDatas };

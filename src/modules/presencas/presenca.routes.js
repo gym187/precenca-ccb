@@ -20,6 +20,9 @@ router.post(
 // GET /api/presencas — listar com filtros
 router.get('/', perm('lancar_presenca'), controller.listar);
 
+// GET /api/presencas/datas — datas com lançamento por continuação
+router.get('/datas', perm('lancar_presenca'), controller.getDatas);
+
 // PUT /api/presencas/:id — editar presença individual
 router.put(
   '/:id',
