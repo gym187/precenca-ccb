@@ -52,11 +52,20 @@ export default function Presencas() {
   const [enviando, setEnviando] = useState(false)
   const [notaGeral, setNotaGeral] = useState('')
   const [showNotaGeral, setShowNotaGeral] = useState(false)
+  const [datasLancadas, setDatasLancadas] = useState([]) // [{ data: 'YYYY-MM-DD', total: N }]
+  const [busca, setBusca] = useState('')
   const { success, error, info } = useToast()
 
   useEffect(() => {
     api.get('/continuacoes').then((r) => setContinuacoes(r.data))
   }, [])
+
+  useEffect(() => {
+    if (!continuacaoId) { setDatasLancadas([]); return }
+    api.get(`/presencas/datas?continuacaoId=${continuacaoId}`)
+      .then((r) => setDatasLancadas(r.data))
+      .catch(() => setDatasLancadas([]))
+  }, [continuacaoId])
 
   const carregarLista = async () => {
     if (!continuacaoId) return info('Selecione uma continuação.')
@@ -82,6 +91,7 @@ export default function Presencas() {
       setPresencaMap(map)
       setObservacaoMap(obsMap)
       setCarregado(true)
+      setBusca('')
     } catch {
       error('Erro ao carregar lista.')
     } finally {
@@ -134,6 +144,13 @@ export default function Presencas() {
     justificado: Object.values(presencaMap).filter((s) => s === 'justificado').length,
   }
 
+  const criancasFiltradas = criancas.filter((c) =>
+    c.nomeCompleto.toLowerCase().includes(busca.toLowerCase())
+  )
+
+  const dataJaLancada = datasLancadas.some((d) => d.data === data)
+  const ultimas5Datas = datasLancadas.slice(0, 5)
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
@@ -166,19 +183,56 @@ export default function Presencas() {
               onChange={(e) => { setData(e.target.value); setCarregado(false) }}
             />
           </div>
-          <button
-            onClick={carregarLista}
-            disabled={loading}
-            className="btn-secondary h-[38px]"
-          >
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Carregando...' : 'Carregar lista'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={carregarLista}
+              disabled={loading}
+              className="btn-secondary h-[38px]"
+            >
+              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Carregando...' : 'Carregar lista'}
+            </button>
+            {dataJaLancada && carregado && (
+              <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200 font-medium">
+                Editando — presença já lançada
+              </span>
+            )}
+          </div>
         </div>
+        {ultimas5Datas.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-stone-100 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-stone-400">Últimos lançamentos:</span>
+            {ultimas5Datas.map((d) => (
+              <button
+                key={d.data}
+                type="button"
+                onClick={() => { setData(d.data); setCarregado(false) }}
+                className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
+                  d.data === data
+                    ? 'bg-amber-100 border-amber-300 text-amber-700 font-semibold'
+                    : 'bg-stone-50 border-stone-200 text-stone-500 hover:border-stone-400'
+                }`}
+              >
+                {new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {carregado && criancas.length > 0 && (
         <>
+          {/* Busca por nome */}
+          <div className="mb-3">
+            <input
+              type="text"
+              placeholder="Filtrar por nome..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="input w-full max-w-xs"
+            />
+          </div>
+
           {/* Resumo */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             {[
@@ -210,7 +264,7 @@ export default function Presencas() {
           {/* Lista de crianças */}
           <div className="card overflow-hidden mb-4">
             <div className="divide-y divide-stone-50">
-              {criancas.map((c, idx) => (
+              {criancasFiltradas.map((c, idx) => (
                 <div
                   key={c.id}
                   className={`flex items-center justify-between px-4 py-3 ${
