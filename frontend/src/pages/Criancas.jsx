@@ -42,6 +42,10 @@ export default function Criancas() {
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(null)
   const { success, error } = useToast()
+  const [abaModal, setAbaModal] = useState('dados')
+  const [histTransferencias, setHistTransferencias] = useState([])
+  const [transferindo, setTransferindo] = useState(false)
+  const [formTransf, setFormTransf] = useState({ continuacaoDestinoId: '', dataTransferencia: '' })
 
   const fetchCriancas = async () => {
     const params = new URLSearchParams({ ativo: 'true' })
@@ -71,6 +75,8 @@ export default function Criancas() {
     setForm(FORM_VAZIO)
     setFotoFile(null)
     setFotoPreview(null)
+    setAbaModal('dados')
+    setHistTransferencias([])
     setShowModal(true)
   }
 
@@ -88,6 +94,11 @@ export default function Criancas() {
     })
     setFotoFile(null)
     setFotoPreview(c.foto ? c.foto : null)
+    setAbaModal('dados')
+    setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
+    api.get(`/transferencias/crianca/${c.id}`)
+      .then((r) => setHistTransferencias(r.data))
+      .catch(() => setHistTransferencias([]))
     setShowModal(true)
   }
 
@@ -170,6 +181,33 @@ export default function Criancas() {
     }
     setFotoFile(file)
     setFotoPreview(URL.createObjectURL(file))
+  }
+
+  const confirmarTransferencia = async () => {
+    if (!formTransf.continuacaoDestinoId) {
+      error('Selecione a continuação destino.')
+      return
+    }
+    setTransferindo(true)
+    try {
+      await api.post('/transferencias', {
+        criancaId: editando.id,
+        continuacaoDestinoId: formTransf.continuacaoDestinoId,
+        dataTransferencia: formTransf.dataTransferencia || undefined,
+      })
+      success('Criança transferida com sucesso.')
+      fetchCriancas()
+      setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
+      const r = await api.get(`/transferencias/crianca/${editando.id}`)
+      setHistTransferencias(r.data)
+    } catch (err) {
+      const status = err.response?.status
+      if (status === 403) error('Sem permissão para transferir esta criança.')
+      else if (status === 409) error('A criança já pertence a esta continuação.')
+      else error('Erro ao realizar transferência. Tente novamente.')
+    } finally {
+      setTransferindo(false)
+    }
   }
 
   const toggleFiltroStatus = (status) => {
@@ -305,135 +343,219 @@ export default function Criancas() {
           onClose={() => setShowModal(false)}
           size="lg"
         >
-          <form onSubmit={salvar} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <label className="label">Nome completo *</label>
-                <input
-                  className="input"
-                  name="nomeCompleto"
-                  value={form.nomeCompleto}
-                  onChange={handleForm}
-                  required
-                  placeholder="Nome completo"
-                />
-              </div>
+          {editando && (
+            <div className="flex border-b border-stone-200 mb-4 -mt-2">
+              <button
+                type="button"
+                onClick={() => setAbaModal('dados')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  abaModal === 'dados'
+                    ? 'border-stone-900 text-stone-900'
+                    : 'border-transparent text-stone-400 hover:text-stone-600'
+                }`}
+              >
+                Dados
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbaModal('transferir')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  abaModal === 'transferir'
+                    ? 'border-stone-900 text-stone-900'
+                    : 'border-transparent text-stone-400 hover:text-stone-600'
+                }`}
+              >
+                Transferir
+              </button>
+            </div>
+          )}
+          {abaModal === 'transferir' && editando ? (
+            <div className="space-y-4">
+              <p className="text-sm text-stone-500">
+                Continuação atual:{' '}
+                <span className="font-semibold text-stone-800">
+                  {todasContinuacoes.find((c) => c.id === editando.continuacaoId)?.nome ?? editando.continuacaoId}
+                </span>
+              </p>
               <div>
-                <label className="label">Data de nascimento *</label>
-                <input
-                  className="input"
-                  type="date"
-                  name="dataNascimento"
-                  value={form.dataNascimento}
-                  onChange={handleForm}
-                  required
-                />
-              </div>
-              <div>
-                <label className="label">Continuação *</label>
+                <label className="label">Transferir para *</label>
                 <select
                   className="input"
-                  name="continuacaoId"
-                  value={form.continuacaoId}
-                  onChange={handleForm}
-                  required
+                  value={formTransf.continuacaoDestinoId}
+                  onChange={(e) => setFormTransf({ ...formTransf, continuacaoDestinoId: e.target.value })}
                 >
                   <option value="">Selecione...</option>
-                  {todasContinuacoes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nome}
-                    </option>
-                  ))}
+                  {todasContinuacoes
+                    .filter((c) => c.id !== editando.continuacaoId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
                 </select>
               </div>
               <div>
-                <label className="label">Nome do responsável *</label>
+                <label className="label">Data da transferência</label>
                 <input
+                  type="date"
                   className="input"
-                  name="nomeResponsavel"
-                  value={form.nomeResponsavel}
-                  onChange={handleForm}
-                  required
-                  placeholder="Nome do pai/mãe/responsável"
+                  value={formTransf.dataTransferencia}
+                  onChange={(e) => setFormTransf({ ...formTransf, dataTransferencia: e.target.value })}
                 />
               </div>
-              <div>
-                <label className="label">Telefone do responsável *</label>
-                <input
-                  className="input"
-                  name="telefoneResponsavel"
-                  value={form.telefoneResponsavel}
-                  onChange={handleForm}
-                  required
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-              <div>
-                <label className="label">Telefone</label>
-                <input
-                  className="input"
-                  name="telefoneCrianca"
-                  value={form.telefoneCrianca}
-                  onChange={handleForm}
-                  placeholder="Opcional"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="label">Observações</label>
-                <textarea
-                  className="input resize-none"
-                  name="descricao"
-                  value={form.descricao}
-                  onChange={handleForm}
-                  rows={3}
-                  placeholder="Observações..."
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="label">Foto (JPG/PNG)</label>
-                <div className="flex items-center gap-4">
-                  {fotoPreview && (
-                    <img
-                      src={fotoPreview}
-                      alt="Preview"
-                      className="w-16 h-16 rounded-lg object-cover border border-stone-200"
-                    />
-                  )}
-                  <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 text-sm text-stone-600 hover:bg-stone-50 cursor-pointer transition-colors">
-                    <Upload size={14} />
-                    {fotoFile ? fotoFile.name : 'Selecionar foto'}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png"
-                      onChange={handleFotoChange}
-                      className="hidden"
-                    />
-                  </label>
-                  {fotoPreview && (
-                    <button
-                      type="button"
-                      onClick={() => { setFotoFile(null); setFotoPreview(null); setForm({ ...form, foto: '' }) }}
-                      className="text-stone-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
-                className="btn-secondary"
+                onClick={confirmarTransferencia}
+                disabled={transferindo}
+                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancelar
+                {transferindo ? 'Transferindo...' : 'Confirmar Transferência'}
               </button>
-              <button type="submit" disabled={salvando} className="btn-primary">
-                {salvando ? 'Salvando...' : editando ? 'Atualizar' : 'Cadastrar'}
-              </button>
+              {histTransferencias.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">Histórico</p>
+                  <ul className="space-y-1">
+                    {histTransferencias.map((t) => (
+                      <li key={t.id} className="text-sm text-stone-600 bg-stone-50 rounded-lg px-3 py-2">
+                        {t.continuacaoOrigem.nome} → {t.continuacaoDestino.nome}
+                        <span className="text-stone-400 ml-2">
+                          · {new Date(t.dataTransferencia).toLocaleDateString('pt-BR')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          </form>
+          ) : (
+            <form onSubmit={salvar} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="label">Nome completo *</label>
+                  <input
+                    className="input"
+                    name="nomeCompleto"
+                    value={form.nomeCompleto}
+                    onChange={handleForm}
+                    required
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <label className="label">Data de nascimento *</label>
+                  <input
+                    className="input"
+                    type="date"
+                    name="dataNascimento"
+                    value={form.dataNascimento}
+                    onChange={handleForm}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label">Continuação *</label>
+                  <select
+                    className="input"
+                    name="continuacaoId"
+                    value={form.continuacaoId}
+                    onChange={handleForm}
+                    required
+                  >
+                    <option value="">Selecione...</option>
+                    {todasContinuacoes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Nome do responsável *</label>
+                  <input
+                    className="input"
+                    name="nomeResponsavel"
+                    value={form.nomeResponsavel}
+                    onChange={handleForm}
+                    required
+                    placeholder="Nome do pai/mãe/responsável"
+                  />
+                </div>
+                <div>
+                  <label className="label">Telefone do responsável *</label>
+                  <input
+                    className="input"
+                    name="telefoneResponsavel"
+                    value={form.telefoneResponsavel}
+                    onChange={handleForm}
+                    required
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
+                <div>
+                  <label className="label">Telefone</label>
+                  <input
+                    className="input"
+                    name="telefoneCrianca"
+                    value={form.telefoneCrianca}
+                    onChange={handleForm}
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label">Observações</label>
+                  <textarea
+                    className="input resize-none"
+                    name="descricao"
+                    value={form.descricao}
+                    onChange={handleForm}
+                    rows={3}
+                    placeholder="Observações..."
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label">Foto (JPG/PNG)</label>
+                  <div className="flex items-center gap-4">
+                    {fotoPreview && (
+                      <img
+                        src={fotoPreview}
+                        alt="Preview"
+                        className="w-16 h-16 rounded-lg object-cover border border-stone-200"
+                      />
+                    )}
+                    <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 text-sm text-stone-600 hover:bg-stone-50 cursor-pointer transition-colors">
+                      <Upload size={14} />
+                      {fotoFile ? fotoFile.name : 'Selecionar foto'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        onChange={handleFotoChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {fotoPreview && (
+                      <button
+                        type="button"
+                        onClick={() => { setFotoFile(null); setFotoPreview(null); setForm({ ...form, foto: '' }) }}
+                        className="text-stone-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" disabled={salvando} className="btn-primary">
+                  {salvando ? 'Salvando...' : editando ? 'Atualizar' : 'Cadastrar'}
+                </button>
+              </div>
+            </form>
+          )}
         </Modal>
       )}
 
