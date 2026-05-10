@@ -320,7 +320,7 @@ export default function Dashboard() {
               faltas.map((c) => {
                 const telLimpo = (c.telefoneResponsavel ?? '').replace(/\D/g, '')
                 const msgWpp = encodeURIComponent(
-                  `Paz de Deus ${c.nomeResponsavel} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`
+                  `Paz de Deus ${c.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`
                 )
                 const linkWpp = `https://wa.me/55${telLimpo}?text=${msgWpp}`
 
