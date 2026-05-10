@@ -1,7 +1,7 @@
 const service = require('./transferencia.service');
 
 const transferir = async (req, res) => {
-  const data = await service.transferir(req.body);
+  const data = await service.transferir(req.body, req.usuario);
   res.status(201).json(data);
 };
 

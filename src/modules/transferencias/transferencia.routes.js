@@ -13,6 +13,6 @@ router.use(auth);
 router.post('/', perm('transferir_crianca'), validate(transferenciaSchema), controller.transferir);
 
 // GET /api/transferencias/crianca/:criancaId — histórico de transferências
-router.get('/crianca/:criancaId', perm('gerenciar_criancas'), controller.historico);
+router.get('/crianca/:criancaId', perm('transferir_crianca'), controller.historico);
 
 module.exports = router;

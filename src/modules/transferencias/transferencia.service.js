@@ -1,17 +1,15 @@
 const prisma = require('../../config/prisma');
 const AppError = require('../../utils/AppError');
 
-/**
- * Transfere a criança para outra continuação.
- * Mantém o histórico e atualiza continuacaoId na criança a partir da data.
- */
-const transferir = async ({ criancaId, continuacaoDestinoId, dataTransferencia }) => {
+const transferir = async ({ criancaId, continuacaoDestinoId, dataTransferencia }, usuario) => {
   const crianca = await prisma.crianca.findUnique({ where: { id: criancaId } });
   if (!crianca) throw new AppError('Criança não encontrada.', 404);
 
-  const destino = await prisma.continuacao.findUnique({
-    where: { id: continuacaoDestinoId },
-  });
+  if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(crianca.continuacaoId)) {
+    throw new AppError('Sem acesso a esta continuação.', 403);
+  }
+
+  const destino = await prisma.continuacao.findUnique({ where: { id: continuacaoDestinoId } });
   if (!destino) throw new AppError('Continuação destino não encontrada.', 404);
 
   if (crianca.continuacaoId === continuacaoDestinoId) {
@@ -20,7 +18,6 @@ const transferir = async ({ criancaId, continuacaoDestinoId, dataTransferencia }
 
   const dataObj = dataTransferencia ? new Date(dataTransferencia) : new Date();
 
-  // Registrar transferência no histórico
   const transferencia = await prisma.transferencia.create({
     data: {
       criancaId,
@@ -35,7 +32,6 @@ const transferir = async ({ criancaId, continuacaoDestinoId, dataTransferencia }
     },
   });
 
-  // Atualizar continuação atual da criança
   await prisma.crianca.update({
     where: { id: criancaId },
     data: { continuacaoId: continuacaoDestinoId },
