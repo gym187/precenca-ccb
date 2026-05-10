@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Plus, Search, Pencil, Trash2, History, X, FileDown, Upload, MessageSquare } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, History, X, FileDown, Upload, MessageSquare, MessageCircle } from 'lucide-react'
 import api from '../api/client'
 import Modal from '../components/Modal'
 import PdfPreview from '../components/PdfPreview'
@@ -319,6 +319,21 @@ export default function Criancas() {
                         >
                           <History size={15} />
                         </button>
+                        {c.telefoneResponsavel && (() => {
+                          const tel = c.telefoneResponsavel.replace(/\D/g, '')
+                          const msg = encodeURIComponent(`Paz de Deus ${c.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`)
+                          return (
+                            <a
+                              href={`https://wa.me/55${tel}?text=${msg}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Enviar WhatsApp"
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                            >
+                              <MessageCircle size={15} />
+                            </a>
+                          )
+                        })()}
                         <button
                           onClick={() => abrirEditar(c)}
                           className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
