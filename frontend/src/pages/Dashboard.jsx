@@ -52,6 +52,7 @@ export default function Dashboard() {
   const [pdfPreview, setPdfPreview] = useState(null)
   const [contDetalhe, setContDetalhe] = useState(null)
   const [criancaDetalhe, setCriancaDetalhe] = useState(null)
+  const [visitasCrianca, setVisitasCrianca] = useState([])
   const [loadingCrianca, setLoadingCrianca] = useState(false)
 
   const carregarResumos = useCallback(async (conts, per) => {
@@ -105,12 +106,15 @@ export default function Dashboard() {
 
   const abrirDetalheCrianca = async (id) => {
     setLoadingCrianca(true)
+    setVisitasCrianca([])
     try {
-      const [detRes, histRes] = await Promise.all([
+      const [detRes, histRes, visitasRes] = await Promise.all([
         api.get(`/criancas/${id}`),
         api.get(`/criancas/${id}/historico?periodo=${periodo}`),
+        api.get(`/visitas/crianca/${id}`),
       ])
       setCriancaDetalhe({ crianca: detRes.data, ...histRes.data })
+      setVisitasCrianca(visitasRes.data)
     } catch {
       setCriancaDetalhe(null)
     } finally {
@@ -673,6 +677,35 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+
+              <div className="border-t border-stone-100 dark:border-stone-700 pt-3">
+                <p className="text-xs text-stone-400 dark:text-stone-500 uppercase font-semibold mb-2">Visitas</p>
+                {visitasCrianca.length === 0 ? (
+                  <p className="text-sm text-stone-400 dark:text-stone-500">Nenhuma visita registrada.</p>
+                ) : (
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {visitasCrianca.slice(0, 5).map((v) => (
+                      <div key={v.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                        <div>
+                          <span className="text-sm text-stone-600 dark:text-stone-300">
+                            {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                          </span>
+                          <span className="text-xs text-stone-400 dark:text-stone-500 ml-2">· {v.responsavel?.nome}</span>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          v.status === 'concluida'
+                            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'
+                            : v.status === 'remarcada'
+                            ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400'
+                            : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400'
+                        }`}>
+                          {v.status === 'concluida' ? 'Concluída' : v.status === 'remarcada' ? 'Remarcada' : 'Pendente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </Modal>
