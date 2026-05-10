@@ -73,7 +73,7 @@ export default function Relatorios() {
           `presencas_${nomeSlug}_${data}.csv`
         )
       }
-      success('PDF gerado com sucesso.')
+      success(tipo === 'csv' ? 'CSV exportado com sucesso.' : 'PDF gerado com sucesso.')
     } catch {
       error('Erro ao gerar o relatório. Tente novamente.')
     } finally {
