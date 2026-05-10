@@ -1,4 +1,4 @@
-const { gerarPdfContinuacao, gerarPdfGeral, gerarPdfAdministrativo } = require('./relatorio.service');
+const { gerarPdfContinuacao, gerarPdfGeral, gerarPdfAdministrativo, gerarCsv } = require('./relatorio.service');
 
 const continuacao = async (req, res, next) => {
   try {
@@ -28,4 +28,16 @@ const administrativo = async (req, res, next) => {
   }
 };
 
-module.exports = { continuacao, geral, administrativo };
+const csv = async (req, res, next) => {
+  try {
+    const { continuacaoId, periodo } = req.query;
+    if (!continuacaoId) {
+      return res.status(400).json({ erro: 'continuacaoId é obrigatório.' });
+    }
+    await gerarCsv(continuacaoId, { periodo }, req.usuario, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { continuacao, geral, administrativo, csv };

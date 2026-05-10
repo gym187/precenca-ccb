@@ -1,31 +1,9 @@
 const PDFDocument = require('pdfkit');
 const prisma = require('../../config/prisma');
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const { resolverIntervalo, labelPeriodo } = require('../../utils/dateRange');
 
 const calcPerc = (presentes, total) =>
   total === 0 ? 0 : Math.round((presentes / total) * 100);
-
-const resolverIntervalo = (periodo) => {
-  if (!periodo || periodo === 'all') return null;
-  const meses = { '1m': 1, '3m': 3, '6m': 6, '12m': 12 }[periodo];
-  if (!meses) return null;
-  const fim = new Date();
-  const inicio = new Date();
-  inicio.setMonth(inicio.getMonth() - meses);
-  return { inicio, fim };
-};
-
-const labelPeriodo = (periodo) => {
-  const map = {
-    '1m': 'Último mês',
-    '3m': 'Últimos 3 meses',
-    '6m': 'Últimos 6 meses',
-    '12m': 'Últimos 12 meses',
-    all: 'Todo o período',
-  };
-  return map[periodo] ?? 'Mês atual';
-};
 
 const fmtData = (d) =>
   d ? new Date(d).toLocaleDateString('pt-BR') : '—';
@@ -261,7 +239,7 @@ const gerarPdfContinuacao = async (continuacaoId, { periodo } = {}, usuario, res
     return;
   }
 
-  const intervalo = resolverIntervalo(periodo);
+  const intervalo = resolverIntervalo({ periodo });
   const dados = await dadosContinuacao(continuacaoId, intervalo);
   if (!dados) {
     res.status(404).json({ erro: 'Continuação não encontrada.' });
@@ -290,7 +268,7 @@ const gerarPdfGeral = async ({ periodo } = {}, usuario, res) => {
     orderBy: { nome: 'asc' },
   });
 
-  const intervalo = resolverIntervalo(periodo);
+  const intervalo = resolverIntervalo({ periodo });
   const blocos = await Promise.all(
     continuacoes.map((c) => dadosContinuacao(c.id, intervalo))
   );
@@ -308,7 +286,7 @@ const gerarPdfGeral = async ({ periodo } = {}, usuario, res) => {
 
 const gerarPdfAdministrativo = async ({ periodo } = {}, res) => {
   const continuacoes = await prisma.continuacao.findMany({ orderBy: { nome: 'asc' } });
-  const intervalo = resolverIntervalo(periodo);
+  const intervalo = resolverIntervalo({ periodo });
 
   const blocos = await Promise.all(
     continuacoes.map((c) => dadosContinuacao(c.id, intervalo))
@@ -443,4 +421,50 @@ const gerarPdfAdministrativo = async ({ periodo } = {}, res) => {
   doc.end();
 };
 
-module.exports = { gerarPdfContinuacao, gerarPdfGeral, gerarPdfAdministrativo };
+// ─── Exportar CSV de uma continuação ─────────────────────────────────────────
+
+const gerarCsv = async (continuacaoId, { periodo } = {}, usuario, res) => {
+  if (
+    usuario &&
+    !usuario.todasContinuacoes &&
+    !usuario.continuacoes.includes(continuacaoId)
+  ) {
+    res.status(403).json({ erro: 'Sem acesso a esta continuação.' });
+    return;
+  }
+
+  const intervalo = resolverIntervalo({ periodo });
+  const dados = await dadosContinuacao(continuacaoId, intervalo);
+  if (!dados) {
+    res.status(404).json({ erro: 'Continuação não encontrada.' });
+    return;
+  }
+
+  const nomeSanitizado = dados.continuacao.nome.replace(/[^a-z0-9]/gi, '_');
+  const periodoLabel = labelPeriodo(periodo).replace(/ /g, '_');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="presencas_${nomeSanitizado}_${periodoLabel}.csv"`
+  );
+
+  const escapar = (v) => `"${String(v).replace(/"/g, '""')}"`;
+
+  const header = 'Nome,Continuação,Presenças,Faltas,Justificados,Total,% Presença\n';
+  const linhas = dados.linhas.map((l) =>
+    [
+      escapar(l.nomeCompleto),
+      escapar(dados.continuacao.nome),
+      l.presentes,
+      l.ausentes,
+      l.justificados,
+      l.total,
+      l.perc,
+    ].join(',')
+  );
+
+  res.send(header + linhas.join('\n'));
+};
+
+module.exports = { gerarPdfContinuacao, gerarPdfGeral, gerarPdfAdministrativo, gerarCsv };
