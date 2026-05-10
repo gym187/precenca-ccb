@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Plus, Search, Pencil, Trash2, History, X, FileDown, Upload, MessageSquare } from 'lucide-react'
 import api from '../api/client'
 import Modal from '../components/Modal'
 import PdfPreview from '../components/PdfPreview'
 import { AvatarWithFallback } from '../components/Avatar'
 import { useToast } from '../contexts/ToastContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const FORM_VAZIO = {
   nomeCompleto: '',
@@ -42,6 +43,8 @@ export default function Criancas() {
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(null)
   const { success, error } = useToast()
+  const { temPermissao } = useAuth()
+  const histTransfCriancaRef = useRef(null)
   const [abaModal, setAbaModal] = useState('dados')
   const [histTransferencias, setHistTransferencias] = useState([])
   const [transferindo, setTransferindo] = useState(false)
@@ -96,9 +99,12 @@ export default function Criancas() {
     setFotoPreview(c.foto ? c.foto : null)
     setAbaModal('dados')
     setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
-    api.get(`/transferencias/crianca/${c.id}`)
-      .then((r) => setHistTransferencias(r.data))
-      .catch(() => setHistTransferencias([]))
+    if (temPermissao('transferir_crianca')) {
+      histTransfCriancaRef.current = c.id
+      api.get(`/transferencias/crianca/${c.id}`)
+        .then((r) => { if (histTransfCriancaRef.current === c.id) setHistTransferencias(r.data) })
+        .catch(() => { if (histTransfCriancaRef.current === c.id) setHistTransferencias([]) })
+    }
     setShowModal(true)
   }
 
@@ -357,17 +363,19 @@ export default function Criancas() {
               >
                 Dados
               </button>
-              <button
-                type="button"
-                onClick={() => setAbaModal('transferir')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  abaModal === 'transferir'
-                    ? 'border-stone-900 text-stone-900'
-                    : 'border-transparent text-stone-400 hover:text-stone-600'
-                }`}
-              >
-                Transferir
-              </button>
+              {temPermissao('transferir_crianca') && (
+                <button
+                  type="button"
+                  onClick={() => setAbaModal('transferir')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    abaModal === 'transferir'
+                      ? 'border-stone-900 text-stone-900'
+                      : 'border-transparent text-stone-400 hover:text-stone-600'
+                  }`}
+                >
+                  Transferir
+                </button>
+              )}
             </div>
           )}
           {abaModal === 'transferir' && editando ? (
