@@ -11,7 +11,7 @@ const itemListaSchema = z.object({
 
 const lancamentoListaSchema = z.object({
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'data deve ser YYYY-MM-DD.'),
-  tipoReuniao: z.string().default('reuniao_jovens'),
+  tipoReuniao: z.enum(['reuniao_jovens', 'reuniao_menores', 'culto', 'outro']).default('reuniao_jovens'),
   presencas: z.array(itemListaSchema).min(1, 'Informe ao menos uma criança.'),
 });
 
