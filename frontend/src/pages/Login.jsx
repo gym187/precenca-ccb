@@ -27,31 +27,31 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gelo flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gelo dark:bg-stone-950 flex items-center justify-center p-4">
       {/* Background pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-bege rounded-full opacity-40 translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-stone-200 rounded-full opacity-30 -translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-bege dark:bg-stone-800 rounded-full opacity-40 translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-stone-200 dark:bg-stone-800 rounded-full opacity-30 -translate-x-1/2 translate-y-1/2" />
       </div>
 
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-stone-800 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-stone-800 dark:bg-stone-700 rounded-2xl mb-4 shadow-lg">
             <Cross size={24} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-stone-800">CCB</h1>
-          <p className="text-stone-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100">CCB</h1>
+          <p className="text-stone-500 dark:text-stone-400 text-sm mt-1">
             Congregação Cristã no Brasil
           </p>
-          <p className="text-stone-400 text-xs mt-0.5">
+          <p className="text-stone-400 dark:text-stone-500 text-xs mt-0.5">
             Sistema de Controle de Presença
           </p>
         </div>
 
         {/* Card */}
         <div className="card p-8 shadow-md">
-          <h2 className="text-base font-semibold text-stone-700 mb-6">
+          <h2 className="text-base font-semibold text-stone-700 dark:text-stone-200 mb-6">
             Acesse sua conta
           </h2>
 

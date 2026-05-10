@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import PrivateRoute from './components/PrivateRoute'
 import Layout from './components/Layout'
 import Toast from './components/Toast'
@@ -10,9 +11,11 @@ import Criancas from './pages/Criancas'
 import Presencas from './pages/Presencas'
 import Continuacoes from './pages/Continuacoes'
 import Usuarios from './pages/Usuarios'
+import Relatorios from './pages/Relatorios'
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <ToastProvider>
         <BrowserRouter>
@@ -26,6 +29,7 @@ export default function App() {
                 <Route path="/criancas" element={<Criancas />} />
                 <Route path="/presencas" element={<Presencas />} />
                 <Route path="/continuacoes" element={<Continuacoes />} />
+                <Route path="/relatorios" element={<Relatorios />} />
                 <Route path="/usuarios" element={<Usuarios />} />
               </Route>
             </Route>
@@ -34,5 +38,6 @@ export default function App() {
         </BrowserRouter>
       </ToastProvider>
     </AuthProvider>
+    </ThemeProvider>
   )
 }

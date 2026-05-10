@@ -26,19 +26,17 @@ export default function Modal({ title, onClose, children, size = 'md' }) {
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className={`relative bg-white rounded-xl shadow-2xl w-full ${sizes[size]} flex flex-col max-h-[90vh]`}
+        className={`relative bg-white dark:bg-stone-900 rounded-xl shadow-2xl w-full ${sizes[size]} flex flex-col max-h-[90vh]`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 shrink-0">
-          <h2 className="text-base font-semibold text-stone-800">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 dark:border-stone-700 shrink-0">
+          <h2 className="text-base font-semibold text-stone-800 dark:text-stone-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-stone-400 hover:text-stone-600 transition-colors p-1 rounded-lg hover:bg-stone-100"
+            className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors p-1 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800"
           >
             <X size={18} />
           </button>
         </div>
-        {/* Content */}
         <div className="overflow-y-auto flex-1 px-6 py-4">{children}</div>
       </div>
     </div>
