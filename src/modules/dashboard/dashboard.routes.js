@@ -15,6 +15,6 @@ router.get('/continuacao/:continuacaoId', controller.resumoContinuacao);
 router.get('/aniversariantes', controller.aniversariantes);
 
 // GET /api/dashboard/faltas-consecutivas?continuacaoId=...&minFaltas=2
-router.get('/faltas-consecutivas', controller.faltasConsecutivas);
+router.get('/faltas-consecutivas', controller.faltasNoPeriodo);
 
 module.exports = router;

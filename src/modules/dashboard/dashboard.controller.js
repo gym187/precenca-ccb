@@ -10,9 +10,9 @@ const aniversariantes = async (req, res) => {
   res.json(data);
 };
 
-const faltasConsecutivas = async (req, res) => {
-  const data = await service.faltasConsecutivas(req.query, req.usuario);
+const faltasNoPeriodo = async (req, res) => {
+  const data = await service.faltasNoPeriodo(req.query, req.usuario);
   res.json(data);
 };
 
-module.exports = { resumoContinuacao, aniversariantes, faltasConsecutivas };
+module.exports = { resumoContinuacao, aniversariantes, faltasNoPeriodo };

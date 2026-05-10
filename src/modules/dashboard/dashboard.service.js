@@ -1,55 +1,6 @@
 const prisma = require('../../config/prisma');
 const AppError = require('../../utils/AppError');
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Retorna {inicio, fim} para mês no formato "YYYY-MM".
- */
-const intervaloPorMes = (anoMes) => {
-  const [ano, mes] = anoMes.split('-').map(Number);
-  const inicio = new Date(ano, mes - 1, 1);
-  const fim = new Date(ano, mes, 0);
-  return { inicio, fim };
-};
-
-/**
- * Retorna {inicio, fim} para trimestre (1-4) no ano corrente.
- */
-const intervaloPorTrimestre = (trimestre, ano = new Date().getFullYear()) => {
-  const t = Number(trimestre);
-  const inicio = new Date(ano, (t - 1) * 3, 1);
-  const fim = new Date(ano, t * 3, 0);
-  return { inicio, fim };
-};
-
-/**
- * Resolve o intervalo de datas a partir dos parâmetros da query.
- * Suporta: mes=YYYY-MM | trimestre=1-4 | periodo=1m|3m|6m|12m|all
- * Padrão: mês atual.
- */
-const resolverIntervalo = ({ mes, trimestre, periodo } = {}) => {
-  if (mes) return intervaloPorMes(mes);
-  if (trimestre) return intervaloPorTrimestre(trimestre);
-
-  const now = new Date();
-  if (periodo === 'all') return null; // sem filtro de data
-
-  if (periodo) {
-    const meses = { '1m': 1, '3m': 3, '6m': 6, '12m': 12 }[periodo];
-    if (meses) {
-      const fim = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-      const inicio = new Date(fim);
-      inicio.setMonth(inicio.getMonth() - meses);
-      return { inicio, fim };
-    }
-  }
-
-  // Padrão: mês atual
-  return intervaloPorMes(
-    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  );
-};
+const { resolverIntervalo } = require('../../utils/dateRange');
 
 const calcPercPresenca = (presentes, total) =>
   total === 0 ? 0 : Math.round((presentes / total) * 100);
@@ -167,9 +118,9 @@ const aniversariantesMes = async ({ continuacaoId, mes } = {}, usuario) => {
     .sort((a, b) => new Date(a.dataNascimento).getDate() - new Date(b.dataNascimento).getDate());
 };
 
-// ─── Faltas consecutivas ─────────────────────────────────────────────────────
+// ─── Faltas no período ──────────────────────────────────────────────────────
 
-const faltasConsecutivas = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) => {
+const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 3 } = {}, usuario) => {
   const where = { ativo: true };
   if (continuacaoId) {
     if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(continuacaoId)) {
@@ -191,27 +142,29 @@ const faltasConsecutivas = async ({ continuacaoId, minFaltas = 2 } = {}, usuario
     },
   });
 
-  const resultado = [];
+  if (criancas.length === 0) return [];
 
-  for (const crianca of criancas) {
-    const presencas = await prisma.presenca.findMany({
-      where: { criancaId: crianca.id },
-      orderBy: { data: 'desc' },
-      take: 10,
-    });
+  const inicio30d = new Date();
+  inicio30d.setDate(inicio30d.getDate() - 30);
 
-    let faltas = 0;
-    for (const p of presencas) {
-      if (p.status !== 'presente') faltas++;
-      else break;
-    }
+  const faltas = await prisma.presenca.findMany({
+    where: {
+      criancaId: { in: criancas.map((c) => c.id) },
+      data: { gte: inicio30d },
+      status: { not: 'presente' },
+    },
+    select: { criancaId: true },
+  });
 
-    if (faltas >= Number(minFaltas)) {
-      resultado.push({ ...crianca, faltasConsecutivas: faltas });
-    }
+  const contagemFaltas = {};
+  for (const f of faltas) {
+    contagemFaltas[f.criancaId] = (contagemFaltas[f.criancaId] ?? 0) + 1;
   }
 
-  return resultado.sort((a, b) => b.faltasConsecutivas - a.faltasConsecutivas);
+  return criancas
+    .filter((c) => (contagemFaltas[c.id] ?? 0) >= Number(minFaltas))
+    .map((c) => ({ ...c, faltasNoPeriodo: contagemFaltas[c.id] }))
+    .sort((a, b) => b.faltasNoPeriodo - a.faltasNoPeriodo);
 };
 
-module.exports = { resumoContinuacao, aniversariantesMes, faltasConsecutivas };
+module.exports = { resumoContinuacao, aniversariantesMes, faltasNoPeriodo };
