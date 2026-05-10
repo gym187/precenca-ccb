@@ -30,4 +30,9 @@ const remover = async (req, res) => {
   res.status(204).send();
 };
 
-module.exports = { listar, getResumo, historicoCrianca, criar, editar, remover };
+const listarResponsaveis = async (req, res) => {
+  const data = await service.listarResponsaveis();
+  res.json(data);
+};
+
+module.exports = { listar, getResumo, historicoCrianca, criar, editar, remover, listarResponsaveis };

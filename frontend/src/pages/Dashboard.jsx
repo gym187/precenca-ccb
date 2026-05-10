@@ -108,17 +108,21 @@ export default function Dashboard() {
     setLoadingCrianca(true)
     setVisitasCrianca([])
     try {
-      const [detRes, histRes, visitasRes] = await Promise.all([
+      const [detRes, histRes] = await Promise.all([
         api.get(`/criancas/${id}`),
         api.get(`/criancas/${id}/historico?periodo=${periodo}`),
-        api.get(`/visitas/crianca/${id}`),
       ])
       setCriancaDetalhe({ crianca: detRes.data, ...histRes.data })
-      setVisitasCrianca(visitasRes.data)
     } catch {
       setCriancaDetalhe(null)
     } finally {
       setLoadingCrianca(false)
+    }
+    try {
+      const visitasRes = await api.get(`/visitas/crianca/${id}`)
+      setVisitasCrianca(visitasRes.data)
+    } catch {
+      // silently ignore — user may not have gerenciar_visitas
     }
   }
 

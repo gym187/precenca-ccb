@@ -107,4 +107,11 @@ const remover = async (id) => {
   await prisma.visita.delete({ where: { id } });
 };
 
-module.exports = { listar, resumo, historicoCrianca, criar, editar, remover };
+const listarResponsaveis = async () => {
+  return prisma.usuario.findMany({
+    select: { id: true, nome: true },
+    orderBy: { nome: 'asc' },
+  });
+};
+
+module.exports = { listar, resumo, historicoCrianca, criar, editar, remover, listarResponsaveis };

@@ -52,7 +52,7 @@ export default function Visitas() {
       fetchVisitas(),
       fetchResumo(),
       api.get('/criancas?ativo=true').then((r) => setCriancas(r.data)),
-      api.get('/usuarios').then((r) => setUsuarios(r.data)),
+      api.get('/visitas/responsaveis').then((r) => setUsuarios(r.data)),
       api.get('/continuacoes/todas').then((r) => setContinuacoes(r.data)),
     ])
       .catch(() => error('Erro ao carregar dados iniciais.'))
@@ -204,7 +204,7 @@ export default function Visitas() {
                     <p className="text-xs text-stone-400">{v.crianca?.continuacao?.nome}</p>
                   </td>
                   <td className="table-cell hidden sm:table-cell text-stone-600 text-sm">
-                    {new Date(v.data + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                    {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
                   </td>
                   <td className="table-cell hidden md:table-cell text-stone-600 text-sm">{v.endereco}</td>
                   <td className="table-cell hidden lg:table-cell text-stone-600 text-sm">{v.responsavel?.nome}</td>

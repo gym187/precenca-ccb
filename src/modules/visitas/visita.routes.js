@@ -8,7 +8,8 @@ const { visitaSchema, editarVisitaSchema } = require('./visita.schema');
 const router = Router();
 router.use(auth);
 
-// IMPORTANTE: /resumo e /crianca/:id ANTES de /:id para evitar conflito
+// IMPORTANTE: /resumo, /responsaveis e /crianca/:id ANTES de /:id para evitar conflito
+router.get('/responsaveis',        perm('gerenciar_visitas'), controller.listarResponsaveis);
 router.get('/resumo',              perm('gerenciar_visitas'), controller.getResumo);
 router.get('/crianca/:criancaId',  perm('gerenciar_visitas'), controller.historicoCrianca);
 router.get('/',                    perm('gerenciar_visitas'), controller.listar);
