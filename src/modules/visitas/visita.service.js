@@ -28,23 +28,28 @@ const listar = async ({ status, criancaId, continuacaoId, dataInicio, dataFim } 
 };
 
 const resumo = async () => {
-  const [total, porStatus, criancasComVisitas] = await Promise.all([
+  const [total, porStatus, gruposPorCrianca] = await Promise.all([
     prisma.visita.count(),
     prisma.visita.groupBy({ by: ['status'], _count: { id: true } }),
-    prisma.visita.findMany({
-      select: { crianca: { select: { continuacao: { select: { id: true, nome: true } } } } },
-    }),
+    prisma.visita.groupBy({ by: ['criancaId'], _count: { id: true } }),
   ]);
 
   const porStatusMap = { pendente: 0, concluida: 0, remarcada: 0 };
   for (const s of porStatus) porStatusMap[s.status] = s._count.id;
 
+  const criancaIds = gruposPorCrianca.map((g) => g.criancaId);
+  const criancas = await prisma.crianca.findMany({
+    where: { id: { in: criancaIds } },
+    select: { id: true, continuacao: { select: { id: true, nome: true } } },
+  });
+  const criancaMap = Object.fromEntries(criancas.map((c) => [c.id, c]));
+
   const contMap = {};
-  for (const v of criancasComVisitas) {
-    const cont = v.crianca?.continuacao;
+  for (const g of gruposPorCrianca) {
+    const cont = criancaMap[g.criancaId]?.continuacao;
     if (!cont) continue;
     if (!contMap[cont.id]) contMap[cont.id] = { continuacaoId: cont.id, nome: cont.nome, total: 0 };
-    contMap[cont.id].total++;
+    contMap[cont.id].total += g._count.id;
   }
 
   return {
@@ -87,6 +92,10 @@ const editar = async (id, dados) => {
   if (!visita) throw new AppError('Visita não encontrada.', 404);
 
   const update = { ...dados };
+  if (dados.responsavelId) {
+    const responsavel = await prisma.usuario.findUnique({ where: { id: dados.responsavelId } });
+    if (!responsavel) throw new AppError('Usuário não encontrado.', 404);
+  }
   if (dados.data) update.data = new Date(dados.data);
 
   return prisma.visita.update({ where: { id }, data: update, include: INCLUDE });

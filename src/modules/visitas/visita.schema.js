@@ -10,6 +10,8 @@ const visitaSchema = z.object({
   status:        z.enum(['pendente', 'concluida', 'remarcada']).default('pendente'),
 });
 
-const editarVisitaSchema = visitaSchema.partial();
+const editarVisitaSchema = visitaSchema.omit({ status: true }).partial().extend({
+  status: z.enum(['pendente', 'concluida', 'remarcada']).optional(),
+});
 
 module.exports = { visitaSchema, editarVisitaSchema };
