@@ -7,7 +7,7 @@ const calcPercPresenca = (presentes, total) =>
 
 // ─── Resumo por continuação ──────────────────────────────────────────────────
 
-const resumoContinuacao = async (continuacaoId, { mes, trimestre, periodo } = {}, usuario) => {
+const resumoContinuacao = async (continuacaoId, { mes, trimestre, periodo, dataInicio, dataFim } = {}, usuario) => {
   if (
     usuario &&
     !usuario.todasContinuacoes &&
@@ -19,7 +19,7 @@ const resumoContinuacao = async (continuacaoId, { mes, trimestre, periodo } = {}
   const cont = await prisma.continuacao.findUnique({ where: { id: continuacaoId } });
   if (!cont) throw new AppError('Continuação não encontrada.', 404);
 
-  const intervalo = resolverIntervalo({ mes, trimestre, periodo });
+  const intervalo = resolverIntervalo({ mes, trimestre, periodo, dataInicio, dataFim });
 
   const criancasIds = await prisma.crianca.findMany({
     where: { continuacaoId, ativo: true },
@@ -242,8 +242,7 @@ const serieTemporal = async ({ dataInicio, dataFim }, usuario) => {
         (p) => ids.has(p.criancaId) && p.data >= semIni && p.data <= semFim
       );
       if (regs.length === 0) return null;
-      const pres = regs.filter((p) => p.status === 'presente').length;
-      return Math.round((pres / regs.length) * 100);
+      return regs.filter((p) => p.status === 'presente').length;
     });
     return { continuacaoId: cont.id, nome: cont.nome, pontos };
   });
