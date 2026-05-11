@@ -14,11 +14,18 @@ const intervaloPorTrimestre = (trimestre, ano = new Date().getFullYear()) => {
 
 /**
  * Resolve intervalo de datas a partir de query params.
- * Suporta: mes=YYYY-MM | trimestre=1-4 | periodo=1m|3m|6m|12m|all
+ * Suporta: dataInicio/dataFim=YYYY-MM-DD | mes=YYYY-MM | trimestre=1-4 | periodo=1m|3m|6m|12m|all
  * Padrão: mês atual.
  * Retorna null quando periodo='all' (sem filtro).
  */
-const resolverIntervalo = ({ mes, trimestre, periodo } = {}) => {
+const resolverIntervalo = ({ mes, trimestre, periodo, dataInicio, dataFim } = {}) => {
+  if (dataInicio && dataFim) {
+    return {
+      inicio: new Date(dataInicio + 'T00:00:00'),
+      fim:    new Date(dataFim   + 'T23:59:59'),
+    };
+  }
+
   if (mes) return intervaloPorMes(mes);
   if (trimestre) return intervaloPorTrimestre(trimestre);
 
