@@ -18,6 +18,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import PdfPreview from '../components/PdfPreview'
 import Modal from '../components/Modal'
 import { AvatarWithFallback } from '../components/Avatar'
+import DashboardAnalise from '../components/DashboardAnalise'
 
 const PERIODOS = [
   { v: '1m', l: '1 Mês' },
@@ -54,6 +55,7 @@ export default function Dashboard() {
   const [criancaDetalhe, setCriancaDetalhe] = useState(null)
   const [visitasCrianca, setVisitasCrianca] = useState([])
   const [loadingCrianca, setLoadingCrianca] = useState(false)
+  const [aba, setAba] = useState('resumo')
 
   const carregarResumos = useCallback(async (conts, per) => {
     setLoadingResumos(true)
@@ -168,6 +170,28 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Abas */}
+      <div className="flex border-b border-stone-100 dark:border-stone-700 mb-4">
+        {[
+          { v: 'resumo',  l: 'Resumo'  },
+          { v: 'analise', l: 'Análise' },
+        ].map((a) => (
+          <button
+            key={a.v}
+            onClick={() => setAba(a.v)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              aba === a.v
+                ? 'border-stone-800 dark:border-stone-200 text-stone-800 dark:text-stone-100'
+                : 'border-transparent text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'
+            }`}
+          >
+            {a.l}
+          </button>
+        ))}
+      </div>
+
+      {aba === 'resumo' && (
+      <>
       {/* Seletor de período + botão PDF */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
@@ -437,6 +461,10 @@ export default function Dashboard() {
           <ArrowRight size={16} className="text-stone-300 dark:text-stone-600 group-hover:text-stone-500 dark:group-hover:text-stone-400 transition-colors" />
         </Link>
       </div>
+      </>
+      )}
+
+      {aba === 'analise' && <DashboardAnalise />}
 
       {/* Preview PDF */}
       {pdfPreview && (
@@ -661,7 +689,7 @@ export default function Dashboard() {
                     {criancaDetalhe.historico.slice(0, 10).map((p) => (
                       <div key={p.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
                         <span className="text-sm text-stone-600 dark:text-stone-300">
-                          {new Date(p.data).toLocaleDateString('pt-BR')}
+                          {new Date(p.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')}
                         </span>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           p.status === 'presente'
