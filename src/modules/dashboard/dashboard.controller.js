@@ -15,4 +15,17 @@ const faltasNoPeriodo = async (req, res) => {
   res.json(data);
 };
 
-module.exports = { resumoContinuacao, aniversariantes, faltasNoPeriodo };
+const serieTemporal = async (req, res, next) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+    if (!dataInicio || !dataFim) {
+      return res.status(400).json({ erro: 'dataInicio e dataFim são obrigatórios.' });
+    }
+    const data = await service.serieTemporal({ dataInicio, dataFim }, req.usuario);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { resumoContinuacao, aniversariantes, faltasNoPeriodo, serieTemporal };
