@@ -204,15 +204,14 @@ const serieTemporal = async ({ dataInicio, dataFim }, usuario) => {
   });
 
   // ids de crianças ativas por continuação
+  const todasCriancas = await prisma.crianca.findMany({
+    where: { continuacaoId: { in: continuacoes.map((c) => c.id) }, ativo: true },
+    select: { id: true, continuacaoId: true },
+  });
   const criancasPorCont = {};
-  for (const cont of continuacoes) {
-    const rows = await prisma.crianca.findMany({
-      where: { continuacaoId: cont.id, ativo: true },
-      select: { id: true },
-    });
-    criancasPorCont[cont.id] = rows.map((r) => r.id);
-  }
-  const todosIds = Object.values(criancasPorCont).flat();
+  for (const cont of continuacoes) criancasPorCont[cont.id] = [];
+  for (const c of todasCriancas) criancasPorCont[c.continuacaoId].push(c.id);
+  const todosIds = todasCriancas.map((c) => c.id);
 
   // presencas no período
   const presencas = await prisma.presenca.findMany({
@@ -277,7 +276,7 @@ const serieTemporal = async ({ dataInicio, dataFim }, usuario) => {
     return {
       continuacaoId: cont.id,
       nome: cont.nome,
-      percPresenca: total === 0 ? 0 : Math.round((presentes / total) * 100),
+      percPresenca: calcPercPresenca(presentes, total),
       presentes,
       ausentes,
       justificados,
