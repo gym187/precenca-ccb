@@ -167,4 +167,139 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 3 } = {}, usuario) =
     .sort((a, b) => b.faltasNoPeriodo - a.faltasNoPeriodo);
 };
 
-module.exports = { resumoContinuacao, aniversariantesMes, faltasNoPeriodo };
+// ─── Helpers para série temporal ────────────────────────────────────────────────
+
+const getSemanas = (inicio, fim) => {
+  const semanas = [];
+  const d = new Date(inicio);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day)); // ajusta para segunda-feira
+  while (d <= fim) {
+    semanas.push(new Date(d));
+    d.setDate(d.getDate() + 7);
+  }
+  return semanas;
+};
+
+const getMeses = (inicio, fim) => {
+  const meses = [];
+  const d = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+  while (d <= fim) {
+    meses.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    d.setMonth(d.getMonth() + 1);
+  }
+  return meses;
+};
+
+// ─── Série temporal: presença semanal e visitas mensais ─────────────────────────
+
+const serieTemporal = async ({ dataInicio, dataFim }, usuario) => {
+  const inicio = new Date(dataInicio + 'T00:00:00');
+  const fim    = new Date(dataFim   + 'T23:59:59');
+
+  const continuacoes = await prisma.continuacao.findMany({
+    where: usuario.todasContinuacoes ? {} : { id: { in: usuario.continuacoes } },
+    select: { id: true, nome: true },
+    orderBy: { nome: 'asc' },
+  });
+
+  // ids de crianças ativas por continuação
+  const criancasPorCont = {};
+  for (const cont of continuacoes) {
+    const rows = await prisma.crianca.findMany({
+      where: { continuacaoId: cont.id, ativo: true },
+      select: { id: true },
+    });
+    criancasPorCont[cont.id] = rows.map((r) => r.id);
+  }
+  const todosIds = Object.values(criancasPorCont).flat();
+
+  // presencas no período
+  const presencas = await prisma.presenca.findMany({
+    where: { criancaId: { in: todosIds }, data: { gte: inicio, lte: fim } },
+    select: { criancaId: true, data: true, status: true },
+  });
+
+  // visitas no período
+  const visitas = await prisma.visita.findMany({
+    where: {
+      data: { gte: inicio, lte: fim },
+      crianca: { continuacaoId: { in: continuacoes.map((c) => c.id) }, ativo: true },
+    },
+    select: { data: true, status: true, crianca: { select: { continuacaoId: true } } },
+  });
+
+  // série presença por semana
+  const semanasDate = getSemanas(inicio, fim);
+  const semanasStr  = semanasDate.map((d) => d.toISOString().slice(0, 10));
+
+  const seriesPresenca = continuacoes.map((cont) => {
+    const ids = new Set(criancasPorCont[cont.id]);
+    const pontos = semanasDate.map((semIni) => {
+      const semFim = new Date(semIni);
+      semFim.setDate(semFim.getDate() + 6);
+      semFim.setHours(23, 59, 59);
+      const regs = presencas.filter(
+        (p) => ids.has(p.criancaId) && p.data >= semIni && p.data <= semFim
+      );
+      if (regs.length === 0) return null;
+      const pres = regs.filter((p) => p.status === 'presente').length;
+      return Math.round((pres / regs.length) * 100);
+    });
+    return { continuacaoId: cont.id, nome: cont.nome, pontos };
+  });
+
+  // série visitas por mês
+  const meses = getMeses(inicio, fim);
+
+  const seriesVisitas = continuacoes.map((cont) => {
+    const pontos = meses.map((mes) => {
+      const [ano, mesNum] = mes.split('-').map(Number);
+      return visitas.filter(
+        (v) =>
+          v.crianca.continuacaoId === cont.id &&
+          v.status === 'concluida' &&
+          v.data.getFullYear() === ano &&
+          v.data.getMonth() + 1 === mesNum
+      ).length;
+    });
+    return { continuacaoId: cont.id, nome: cont.nome, pontos };
+  });
+
+  // resumo totais do período
+  const resumoPresenca = continuacoes.map((cont) => {
+    const ids          = new Set(criancasPorCont[cont.id]);
+    const regs         = presencas.filter((p) => ids.has(p.criancaId));
+    const presentes    = regs.filter((p) => p.status === 'presente').length;
+    const ausentes     = regs.filter((p) => p.status === 'ausente').length;
+    const justificados = regs.filter((p) => p.status === 'justificado').length;
+    const total        = regs.length;
+    return {
+      continuacaoId: cont.id,
+      nome: cont.nome,
+      percPresenca: total === 0 ? 0 : Math.round((presentes / total) * 100),
+      presentes,
+      ausentes,
+      justificados,
+    };
+  });
+
+  const resumoVisitas = continuacoes.map((cont) => {
+    const vs = visitas.filter((v) => v.crianca.continuacaoId === cont.id);
+    return {
+      continuacaoId: cont.id,
+      nome:          cont.nome,
+      concluidas:    vs.filter((v) => v.status === 'concluida').length,
+      pendentes:     vs.filter((v) => v.status === 'pendente').length,
+      remarcadas:    vs.filter((v) => v.status === 'remarcada').length,
+    };
+  });
+
+  return {
+    presenca: { semanas: semanasStr, series: seriesPresenca },
+    visitas:  { meses,               series: seriesVisitas  },
+    resumo:   { presenca: resumoPresenca, visitas: resumoVisitas },
+  };
+};
+
+module.exports = { resumoContinuacao, aniversariantesMes, faltasNoPeriodo, serieTemporal };
