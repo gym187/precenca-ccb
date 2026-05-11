@@ -20,13 +20,13 @@ import Modal from '../components/Modal'
 import { AvatarWithFallback } from '../components/Avatar'
 import DashboardAnalise from '../components/DashboardAnalise'
 
-const PERIODOS = [
-  { v: '1m', l: '1 Mês' },
-  { v: '3m', l: '3 Meses' },
-  { v: '6m', l: '6 Meses' },
-  { v: '12m', l: '1 Ano' },
-  { v: 'all', l: 'Tudo' },
-]
+const toISO = (d) => d.toISOString().slice(0, 10)
+
+const defaultInicio = () => {
+  const d = new Date()
+  d.setMonth(d.getMonth() - 1)
+  return toISO(d)
+}
 
 const percColor = (p) =>
   p >= 75 ? '#10b981' : p >= 50 ? '#f59e0b' : '#ef4444'
@@ -48,7 +48,8 @@ export default function Dashboard() {
   const [faltas, setFaltas] = useState([])
   const [resumos, setResumos] = useState({})
   const [loading, setLoading] = useState(true)
-  const [periodo, setPeriodo] = useState('1m')
+  const [dataInicio, setDataInicio] = useState(defaultInicio)
+  const [dataFim, setDataFim] = useState(() => toISO(new Date()))
   const [loadingResumos, setLoadingResumos] = useState(false)
   const [pdfPreview, setPdfPreview] = useState(null)
   const [contDetalhe, setContDetalhe] = useState(null)
@@ -57,13 +58,14 @@ export default function Dashboard() {
   const [loadingCrianca, setLoadingCrianca] = useState(false)
   const [aba, setAba] = useState('resumo')
 
-  const carregarResumos = useCallback(async (conts, per) => {
+  const carregarResumos = useCallback(async (conts, ini, fim) => {
+    if (!ini || !fim || ini > fim) return
     setLoadingResumos(true)
     const resumoMap = {}
     await Promise.all(
       conts.map(async (c) => {
         try {
-          const r = await api.get(`/dashboard/continuacao/${c.id}?periodo=${per}`)
+          const r = await api.get(`/dashboard/continuacao/${c.id}?dataInicio=${ini}&dataFim=${fim}`)
           resumoMap[c.id] = r.data
         } catch {}
       })
@@ -83,7 +85,7 @@ export default function Dashboard() {
         setContinuacoes(contRes.data)
         setAniversariantes(anivRes.data)
         setFaltas(faltasRes.data)
-        await carregarResumos(contRes.data, periodo)
+        await carregarResumos(contRes.data, dataInicio, dataFim)
       } finally {
         setLoading(false)
       }
@@ -93,11 +95,11 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (continuacoes.length > 0) {
-      carregarResumos(continuacoes, periodo)
-    }
+    if (continuacoes.length === 0) return
+    const t = setTimeout(() => carregarResumos(continuacoes, dataInicio, dataFim), 500)
+    return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodo])
+  }, [dataInicio, dataFim])
 
   const abrirPdf = (url, nomeArquivo) => setPdfPreview({ url, nomeArquivo })
 
@@ -112,7 +114,7 @@ export default function Dashboard() {
     try {
       const [detRes, histRes, visitasRes] = await Promise.all([
         api.get(`/criancas/${id}`),
-        api.get(`/criancas/${id}/historico?periodo=${periodo}`),
+        api.get(`/criancas/${id}/historico?dataInicio=${dataInicio}&dataFim=${dataFim}`),
         api.get(`/visitas/crianca/${id}`).catch(() => ({ data: [] })),
       ])
       setCriancaDetalhe({ crianca: detRes.data, ...histRes.data })
@@ -124,7 +126,9 @@ export default function Dashboard() {
     }
   }
 
-  const labelPeriodo = PERIODOS.find((p) => p.v === periodo)?.l ?? '-'
+  const fmtData = (iso) =>
+    iso ? new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
+  const labelPeriodo = `${fmtData(dataInicio)} – ${fmtData(dataFim)}`
   const mesNome = new Date().toLocaleString('pt-BR', { month: 'long' })
 
   // Tooltip style para Recharts (muda com dark mode)
@@ -194,24 +198,31 @@ export default function Dashboard() {
       <>
       {/* Seletor de período + botão PDF */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
-          {PERIODOS.map((p) => (
-            <button
-              key={p.v}
-              onClick={() => setPeriodo(p.v)}
-              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-                periodo === p.v
-                  ? 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 shadow-sm'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
-              }`}
-            >
-              {p.l}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide">De</span>
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="input w-auto text-sm"
+          />
+          <span className="text-stone-400 dark:text-stone-500 text-sm">até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="input w-auto text-sm"
+          />
+          {loadingResumos && (
+            <div className="w-4 h-4 border-2 border-stone-300 dark:border-stone-600 border-t-stone-600 dark:border-t-stone-300 rounded-full animate-spin" />
+          )}
         </div>
         {isAdminGeral && (
           <button
-            onClick={() => abrirPdf(`/relatorios/geral?periodo=${periodo}`, `relatorio_geral_${periodo}.pdf`)}
+            onClick={() => abrirPdf(
+              `/relatorios/geral?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+              `relatorio_geral_${dataInicio}_${dataFim}.pdf`
+            )}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-600 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
           >
             <FileDown size={13} />
@@ -248,8 +259,8 @@ export default function Dashboard() {
                     onClick={(e) => {
                       e.stopPropagation()
                       abrirPdf(
-                        `/relatorios/continuacao/${c.id}?periodo=${periodo}`,
-                        `relatorio_${c.nome?.replace(/\s+/g, '_')}_${periodo}.pdf`
+                        `/relatorios/continuacao/${c.id}?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+                        `relatorio_${c.nome?.replace(/\s+/g, '_')}_${dataInicio}_${dataFim}.pdf`
                       )
                     }}
                     title="Baixar relatório PDF"
@@ -320,12 +331,6 @@ export default function Dashboard() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      )}
-
-      {loadingResumos && (
-        <div className="card p-5 mb-6 flex items-center justify-center h-32">
-          <div className="w-6 h-6 border-2 border-stone-200 dark:border-stone-700 border-t-stone-500 dark:border-t-stone-400 rounded-full animate-spin" />
         </div>
       )}
 
