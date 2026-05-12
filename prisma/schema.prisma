@@ -131,7 +131,10 @@ model Crianca {
   nomeResponsavel     String
   telefoneResponsavel String
   telefoneCrianca     String?
-  descricao           String?  @db.Text
+  descricao           String?   @db.Text
+  observacao          String?   @db.Text
+  motivoArquivamento  String?
+  dataArquivamento    DateTime?
   continuacaoId       String
   ativo               Boolean  @default(true)
 
