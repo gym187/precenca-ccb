@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Plus, Search, Pencil, Trash2, History, X, FileDown, Upload, MessageSquare, MessageCircle } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, History, X, FileDown, Upload, MessageSquare, MessageCircle, MapPin, Clock, User } from 'lucide-react'
 import api from '../api/client'
 import Modal from '../components/Modal'
 import PdfPreview from '../components/PdfPreview'
@@ -14,6 +14,7 @@ const FORM_VAZIO = {
   telefoneResponsavel: '',
   telefoneCrianca: '',
   descricao: '',
+  observacao: '',
   continuacaoId: '',
   foto: '',
 }
@@ -49,6 +50,9 @@ export default function Criancas() {
   const [histTransferencias, setHistTransferencias] = useState([])
   const [transferindo, setTransferindo] = useState(false)
   const [formTransf, setFormTransf] = useState({ continuacaoDestinoId: '', dataTransferencia: '' })
+  const [visitasCrianca, setVisitasCrianca] = useState([])
+  const [visitaDetalhe, setVisitaDetalhe] = useState(null)
+  const [detalhe, setDetalhe] = useState(null)
 
   const fetchCriancas = async () => {
     const params = new URLSearchParams({ ativo: 'true' })
@@ -92,6 +96,7 @@ export default function Criancas() {
       telefoneResponsavel: c.telefoneResponsavel,
       telefoneCrianca: c.telefoneCrianca ?? '',
       descricao: c.descricao ?? '',
+      observacao: c.observacao ?? '',
       continuacaoId: c.continuacaoId,
       foto: c.foto ?? '',
     })
@@ -155,12 +160,15 @@ export default function Criancas() {
   const verHistorico = useCallback(async (id, per = periodoCrianca) => {
     setLoadingHistorico(true)
     setFiltroStatus(null)
+    setVisitasCrianca([])
     try {
-      const [detRes, histRes] = await Promise.all([
+      const [detRes, histRes, visitasRes] = await Promise.all([
         api.get(`/criancas/${id}`),
         api.get(`/criancas/${id}/historico?periodo=${per}`),
+        api.get(`/visitas/crianca/${id}`).catch(() => ({ data: [] })),
       ])
       setHistorico({ crianca: detRes.data, ...histRes.data })
+      setVisitasCrianca(visitasRes.data)
     } catch {
       error('Erro ao buscar histórico.')
     } finally {
@@ -293,15 +301,19 @@ export default function Criancas() {
                 lista.map((c) => (
                   <tr key={c.id} className="hover:bg-stone-50">
                     <td className="table-cell font-medium text-stone-800">
-                      <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setDetalhe(c)}
+                        className="flex items-center gap-2.5 text-left hover:text-stone-600 transition-colors"
+                      >
                         <AvatarWithFallback foto={c.foto} nome={c.nomeCompleto} size="sm" />
                         <div>
-                          {c.nomeCompleto}
+                          <span className="underline-offset-2 hover:underline">{c.nomeCompleto}</span>
                           <p className="text-xs text-stone-400 mt-0.5 sm:hidden">
                             {c.continuacao?.nome}
                           </p>
                         </div>
-                      </div>
+                      </button>
                     </td>
                     <td className="table-cell hidden md:table-cell">{c.nomeResponsavel}</td>
                     <td className="table-cell hidden lg:table-cell">{c.telefoneResponsavel}</td>
@@ -524,14 +536,25 @@ export default function Criancas() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="label">Observações</label>
+                  <label className="label">Descrição</label>
                   <textarea
                     className="input resize-none"
                     name="descricao"
                     value={form.descricao}
                     onChange={handleForm}
+                    rows={2}
+                    placeholder="Descrição geral..."
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label">Observação</label>
+                  <textarea
+                    className="input resize-none"
+                    name="observacao"
+                    value={form.observacao}
+                    onChange={handleForm}
                     rows={3}
-                    placeholder="Observações..."
+                    placeholder="Observações específicas (saúde, comportamento, contexto familiar...)"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -587,7 +610,7 @@ export default function Criancas() {
       {historico && (
         <Modal
           title={`Histórico — ${historico.crianca?.nomeCompleto}`}
-          onClose={() => { setHistorico(null); setPeriodoCrianca('1m') }}
+          onClose={() => { setHistorico(null); setPeriodoCrianca('1m'); setVisitasCrianca([]) }}
           size="lg"
         >
           {/* Seletor de período + PDF */}
@@ -683,8 +706,167 @@ export default function Criancas() {
                   ))
                 )}
               </div>
+
+              <div className="border-t border-stone-100 dark:border-stone-700 pt-3 mt-3">
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-2">Visitas</p>
+                {visitasCrianca.length === 0 ? (
+                  <p className="text-sm text-stone-400 text-center py-4">Nenhuma visita registrada.</p>
+                ) : (
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {visitasCrianca.map((v) => (
+                      <div key={v.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => setVisitaDetalhe(v)}>
+                        <div>
+                          <span className="text-sm text-stone-600">
+                            {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                          </span>
+                          <span className="text-xs text-stone-400 ml-2">· {v.responsavel?.nome}</span>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          v.status === 'concluida'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : v.status === 'remarcada'
+                            ? 'bg-indigo-100 text-indigo-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {v.status === 'concluida' ? 'Concluída' : v.status === 'remarcada' ? 'Remarcada' : 'Pendente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
+        </Modal>
+      )}
+
+      {/* Modal Detalhe Visita */}
+      {visitaDetalhe && (
+        <Modal
+          title="Detalhe da Visita"
+          onClose={() => setVisitaDetalhe(null)}
+          size="sm"
+        >
+          {(() => {
+            const v = visitaDetalhe
+            const STATUS_CLS = {
+              concluida: 'bg-emerald-100 text-emerald-700',
+              remarcada: 'bg-indigo-100 text-indigo-700',
+              pendente:  'bg-amber-100 text-amber-700',
+            }
+            const STATUS_LABEL = { concluida: 'Concluída', remarcada: 'Remarcada', pendente: 'Pendente' }
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-base font-semibold text-stone-800 dark:text-stone-100">
+                    {v.crianca?.nomeCompleto}
+                  </p>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${STATUS_CLS[v.status]}`}>
+                    {STATUS_LABEL[v.status]}
+                  </span>
+                </div>
+                <div className="space-y-2 text-sm text-stone-600 dark:text-stone-300">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-stone-400 shrink-0" />
+                    <span>
+                      {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="text-stone-400 shrink-0" />
+                    <span>{v.endereco}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <User size={14} className="text-stone-400 shrink-0" />
+                    <span>{v.responsavel?.nome}</span>
+                  </div>
+                </div>
+                {v.observacao && (
+                  <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-3">
+                    <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Observação</p>
+                    <p className="text-sm text-stone-600 dark:text-stone-300">{v.observacao}</p>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+        </Modal>
+      )}
+
+      {/* Modal Detalhe */}
+      {detalhe && (
+        <Modal
+          title={`Detalhe — ${detalhe.nomeCompleto}`}
+          onClose={() => setDetalhe(null)}
+          size="lg"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <AvatarWithFallback foto={detalhe.foto} nome={detalhe.nomeCompleto} size="lg" />
+              <div className="flex-1 space-y-1">
+                <p className="text-lg font-semibold text-stone-800 dark:text-stone-100">{detalhe.nomeCompleto}</p>
+                <p className="text-sm text-stone-500">
+                  {detalhe.continuacao?.nome ?? todasContinuacoes.find((x) => x.id === detalhe.continuacaoId)?.nome}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Data de nascimento</p>
+                <p className="text-stone-700 dark:text-stone-300">
+                  {detalhe.dataNascimento
+                    ? new Date(detalhe.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Responsável</p>
+                <p className="text-stone-700 dark:text-stone-300">{detalhe.nomeResponsavel}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone do responsável</p>
+                <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneResponsavel}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone da criança</p>
+                <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneCrianca || '—'}</p>
+              </div>
+            </div>
+
+            {detalhe.descricao && (
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Descrição</p>
+                <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-stone-50 dark:bg-stone-800 rounded-lg p-3">{detalhe.descricao}</p>
+              </div>
+            )}
+
+            {detalhe.observacao && (
+              <div>
+                <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Observação</p>
+                <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">{detalhe.observacao}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-stone-100 dark:border-stone-700">
+              <button
+                type="button"
+                onClick={() => { verHistorico(detalhe.id); setDetalhe(null) }}
+                className="btn-secondary"
+              >
+                <History size={14} /> Ver histórico
+              </button>
+              {temPermissao('gerenciar_criancas') && (
+                <button
+                  type="button"
+                  onClick={() => { abrirEditar(detalhe); setDetalhe(null) }}
+                  className="btn-primary"
+                >
+                  <Pencil size={14} /> Editar
+                </button>
+              )}
+            </div>
+          </div>
         </Modal>
       )}
 
