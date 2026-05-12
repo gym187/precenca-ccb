@@ -38,21 +38,23 @@ fi
 
 log "Docker encontrado: $(docker --version | head -1)"
 
-# ── 2. Verificar JWT_SECRET ─────────────────────────────
-if [ -z "$JWT_SECRET" ]; then
-  if [ -f .env ] && grep -q "JWT_SECRET" .env 2>/dev/null; then
-    export $(grep "JWT_SECRET" .env | xargs)
-    warn "JWT_SECRET carregado do .env"
-  else
-    # Gerar uma chave aleatória na primeira execução
-    JWT_SECRET=$(openssl rand -base64 32 2>/dev/null || head -c 32 /dev/urandom | base64)
-    echo "JWT_SECRET=$JWT_SECRET" > .env
-    warn "JWT_SECRET gerado automaticamente e salvo em .env"
-  fi
+# ── 2. Carregar e validar variáveis de ambiente ─────────
+if [ ! -f .env ]; then
+  fail "Arquivo .env não encontrado. Copie .env.example para .env e preencha os valores."
 fi
-export JWT_SECRET
 
-log "JWT_SECRET configurado"
+# Exportar todas as variáveis do .env (ignora linhas de comentário e vazias)
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
+
+# Validar obrigatórias
+[ -z "$JWT_SECRET" ]        && fail "JWT_SECRET não definido no .env"
+[ -z "$DB_PASSWORD" ]       && fail "DB_PASSWORD não definido no .env"
+[ -z "$DB_ROOT_PASSWORD" ]  && fail "DB_ROOT_PASSWORD não definido no .env"
+
+log "Variáveis de ambiente carregadas"
 
 # ── 3. Build das imagens ────────────────────────────────
 echo ""
