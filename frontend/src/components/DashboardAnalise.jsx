@@ -115,7 +115,7 @@ export default function DashboardAnalise() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="card p-4 flex-1 min-w-0">
                 <p className="text-sm font-semibold text-stone-700 dark:text-stone-200 mb-1">Evolução de Presença</p>
-                <p className="text-xs text-stone-400 dark:text-stone-500 mb-4">% semanal por continuação</p>
+                <p className="text-xs text-stone-400 dark:text-stone-500 mb-4">presenças por semana por continuação</p>
                 {presencaData.length === 0 ? (
                   <p className="text-sm text-stone-400 text-center py-8">Sem registros no período.</p>
                 ) : (
@@ -131,15 +131,16 @@ export default function DashboardAnalise() {
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        domain={[0, 100]}
-                        tickFormatter={(v) => `${v}%`}
+                        allowDecimals={false}
                         tick={{ fontSize: 10, fill: axisColor }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <Tooltip
                         contentStyle={tooltipStyle}
-                        formatter={(v, name) => [v !== null ? `${v}%` : '—', name]}
+                        labelStyle={{ color: dark ? '#f5f5f4' : '#1c1917' }}
+                        itemStyle={{ color: dark ? '#a8a29e' : '#78716c' }}
+                        formatter={(v, name) => [v !== null ? v : '—', name]}
                         labelFormatter={fmtSemana}
                       />
                       {series.map((s, i) => (
@@ -234,6 +235,8 @@ export default function DashboardAnalise() {
                       />
                       <Tooltip
                         contentStyle={tooltipStyle}
+                        labelStyle={{ color: dark ? '#f5f5f4' : '#1c1917' }}
+                        itemStyle={{ color: dark ? '#a8a29e' : '#78716c' }}
                         formatter={(v, name) => [v, name]}
                         labelFormatter={fmtMes}
                       />
