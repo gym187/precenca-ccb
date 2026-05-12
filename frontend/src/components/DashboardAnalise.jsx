@@ -112,7 +112,7 @@ export default function DashboardAnalise() {
             <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">
               Presença por Continuação
             </p>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row md:items-start gap-4">
               <div className="card p-4 flex-1 min-w-0">
                 <p className="text-sm font-semibold text-stone-700 dark:text-stone-200 mb-1">Evolução de Presença</p>
                 <p className="text-xs text-stone-400 dark:text-stone-500 mb-4">presenças por semana por continuação</p>
@@ -161,7 +161,7 @@ export default function DashboardAnalise() {
               </div>
 
               {/* Cards presença */}
-              <div className="flex flex-row md:flex-col gap-2 md:w-52 flex-wrap md:flex-nowrap">
+              <div className="flex flex-row md:flex-col gap-2 md:w-52 flex-wrap md:flex-nowrap md:max-h-72 md:overflow-y-auto">
                 {dados.resumo.presenca.map((r, i) => {
                   const cor = CORES[i % CORES.length]
                   return (
@@ -210,7 +210,7 @@ export default function DashboardAnalise() {
             <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">
               Visitas Concluídas por Continuação
             </p>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row md:items-start gap-4">
               <div className="card p-4 flex-1 min-w-0">
                 <p className="text-sm font-semibold text-stone-700 dark:text-stone-200 mb-1">Evolução de Visitas</p>
                 <p className="text-xs text-stone-400 dark:text-stone-500 mb-4">Visitas concluídas por mês</p>
@@ -258,7 +258,7 @@ export default function DashboardAnalise() {
               </div>
 
               {/* Cards visitas */}
-              <div className="flex flex-row md:flex-col gap-2 md:w-52 flex-wrap md:flex-nowrap">
+              <div className="flex flex-row md:flex-col gap-2 md:w-52 flex-wrap md:flex-nowrap md:max-h-72 md:overflow-y-auto">
                 {dados.resumo.visitas.map((r, i) => {
                   const cor = CORES[i % CORES.length]
                   return (
