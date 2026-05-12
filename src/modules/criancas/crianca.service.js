@@ -86,7 +86,7 @@ const remover = async (id, { motivo, observacao } = {}) => {
   const crianca = await buscarPorId(id);
   if (!crianca.ativo) throw new AppError('Cadastro já está inativo.', 409);
 
-  const motivoFinal = motivo === 'outros' && observacao
+  const motivoFinal = motivo === 'outros'
     ? `outros: ${observacao.trim()}`
     : motivo ?? null;
 

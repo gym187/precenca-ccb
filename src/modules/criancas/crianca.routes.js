@@ -7,6 +7,7 @@ const upload = require('../../middleware/upload');
 const {
   criarCriancaSchema,
   atualizarCriancaSchema,
+  arquivarCriancaSchema,
   filtroHistoricoSchema,
 } = require('./crianca.schema');
 
@@ -24,6 +25,6 @@ router.get(
 );
 router.post('/', perm('gerenciar_criancas'), upload.single('foto'), controller.criar);
 router.put('/:id', perm('gerenciar_criancas'), upload.single('foto'), controller.atualizar);
-router.delete('/:id', perm('gerenciar_criancas'), controller.remover);
+router.delete('/:id', perm('gerenciar_criancas'), validate(arquivarCriancaSchema), controller.remover);
 
 module.exports = router;

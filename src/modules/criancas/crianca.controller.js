@@ -1,5 +1,4 @@
 const service = require('./crianca.service');
-const { arquivarCriancaSchema } = require('./crianca.schema');
 
 const listar = async (req, res) => {
   const { continuacaoId, ativo } = req.query;
@@ -21,8 +20,7 @@ const atualizar = async (req, res) => {
 };
 
 const remover = async (req, res) => {
-  const parsed = arquivarCriancaSchema.parse(req.body ?? {});
-  await service.remover(req.params.id, parsed);
+  await service.remover(req.params.id, req.body);
   res.status(204).send();
 };
 
