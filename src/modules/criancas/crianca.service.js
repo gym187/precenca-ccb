@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma');
 const AppError = require('../../utils/AppError');
+const { criarCriancaSchema } = require('./crianca.schema');
 
 const listar = async ({ continuacaoId, ativo = 'true', usuario } = {}) => {
   const where = {};
@@ -44,15 +45,17 @@ const buscarPorId = async (id) => {
 };
 
 const criar = async (dados) => {
+  const parsed = criarCriancaSchema.parse(dados);
+
   const continuacao = await prisma.continuacao.findUnique({
-    where: { id: dados.continuacaoId },
+    where: { id: parsed.continuacaoId },
   });
   if (!continuacao) throw new AppError('Continuação não encontrada.', 404);
 
   return prisma.crianca.create({
     data: {
-      ...dados,
-      dataNascimento: new Date(dados.dataNascimento),
+      ...parsed,
+      dataNascimento: new Date(parsed.dataNascimento),
     },
     include: { continuacao: { select: { id: true, nome: true } } },
   });
@@ -79,11 +82,22 @@ const atualizar = async (id, dados) => {
   });
 };
 
-const remover = async (id) => {
+const remover = async (id, { motivo, observacao } = {}) => {
   const crianca = await buscarPorId(id);
   if (!crianca.ativo) throw new AppError('Cadastro já está inativo.', 409);
-  // Soft delete — mantém histórico
-  await prisma.crianca.update({ where: { id }, data: { ativo: false } });
+
+  const motivoFinal = motivo === 'outros' && observacao
+    ? `outros: ${observacao.trim()}`
+    : motivo ?? null;
+
+  await prisma.crianca.update({
+    where: { id },
+    data: {
+      ativo: false,
+      motivoArquivamento: motivoFinal,
+      dataArquivamento: new Date(),
+    },
+  });
 };
 
 const buscarHistorico = async (id, filtros = {}) => {
