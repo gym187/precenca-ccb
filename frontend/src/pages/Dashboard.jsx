@@ -204,14 +204,14 @@ export default function Dashboard() {
             type="date"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
-            className="input w-auto text-sm"
+            className="input w-auto text-sm [color-scheme:light] dark:[color-scheme:dark]"
           />
           <span className="text-stone-400 dark:text-stone-500 text-sm">até</span>
           <input
             type="date"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
-            className="input w-auto text-sm"
+            className="input w-auto text-sm [color-scheme:light] dark:[color-scheme:dark]"
           />
           {loadingResumos && (
             <div className="w-4 h-4 border-2 border-stone-300 dark:border-stone-600 border-t-stone-600 dark:border-t-stone-300 rounded-full animate-spin" />
@@ -322,6 +322,8 @@ export default function Dashboard() {
               <Tooltip
                 formatter={(v) => [`${v}%`, 'Presença']}
                 contentStyle={tooltipStyle}
+                labelStyle={{ color: dark ? '#f5f5f4' : '#1c1917' }}
+                itemStyle={{ color: dark ? '#a8a29e' : '#78716c' }}
                 cursor={{ fill: cursorFill }}
               />
               <Bar dataKey="percentual" radius={[6, 6, 0, 0]} maxBarSize={80}>
