@@ -7,6 +7,17 @@ import { AvatarWithFallback } from '../components/Avatar'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../contexts/AuthContext'
 
+const MOTIVO_LABEL = {
+  casamento: 'Casamento',
+  transferencia_outra_congregacao: 'Transferência para outra congregação',
+  falecimento: 'Falecimento',
+}
+const fmtMotivo = (m) => {
+  if (!m) return '—'
+  if (m.startsWith('outros: ')) return `Outros: ${m.slice(8)}`
+  return MOTIVO_LABEL[m] ?? m
+}
+
 const FORM_VAZIO = {
   nomeCompleto: '',
   dataNascimento: '',
@@ -39,6 +50,9 @@ export default function Criancas() {
   const [loadingHistorico, setLoadingHistorico] = useState(false)
   const [periodoCrianca, setPeriodoCrianca] = useState('1m')
   const [showConfirmDelete, setShowConfirmDelete] = useState(null)
+  const [arquivamento, setArquivamento] = useState({ motivo: '', observacao: '' })
+  const [arquivando, setArquivando] = useState(false)
+  const [abaLista, setAbaLista] = useState('ativos')
   const [pdfPreview, setPdfPreview] = useState(null)
   const [filtroStatus, setFiltroStatus] = useState(null)
   const [fotoFile, setFotoFile] = useState(null)
@@ -55,7 +69,7 @@ export default function Criancas() {
   const [detalhe, setDetalhe] = useState(null)
 
   const fetchCriancas = async () => {
-    const params = new URLSearchParams({ ativo: 'true' })
+    const params = new URLSearchParams({ ativo: abaLista === 'ativos' ? 'true' : 'false' })
     if (filtroCont) params.set('continuacaoId', filtroCont)
     const res = await api.get(`/criancas?${params}`)
     setCriancas(res.data)
@@ -71,7 +85,7 @@ export default function Criancas() {
 
   useEffect(() => {
     fetchCriancas()
-  }, [filtroCont])
+  }, [filtroCont, abaLista])
 
   const lista = criancas.filter((c) =>
     c.nomeCompleto.toLowerCase().includes(busca.toLowerCase())
@@ -151,13 +165,27 @@ export default function Criancas() {
   }
 
   const deletar = async (id) => {
+    if (!arquivamento.motivo) {
+      error('Selecione um motivo.')
+      return
+    }
+    if (arquivamento.motivo === 'outros' && arquivamento.observacao.trim().length < 3) {
+      error('Observação é obrigatória quando o motivo é "outros".')
+      return
+    }
+    setArquivando(true)
     try {
-      await api.delete(`/criancas/${id}`)
-      success('Jovem/Menor inativado(a).')
+      await api.delete(`/criancas/${id}`, {
+        data: { motivo: arquivamento.motivo, observacao: arquivamento.observacao || undefined },
+      })
+      success('Jovem/Menor arquivado(a).')
       setShowConfirmDelete(null)
+      setArquivamento({ motivo: '', observacao: '' })
       fetchCriancas()
     } catch (err) {
-      error(err.response?.data?.erro ?? 'Erro ao inativar.')
+      error(err.response?.data?.erro ?? 'Erro ao arquivar.')
+    } finally {
+      setArquivando(false)
     }
   }
 
@@ -244,12 +272,32 @@ export default function Criancas() {
         <div>
           <h1 className="page-title">Jovens e Menores</h1>
           <p className="text-sm text-stone-400 mt-0.5">
-            {lista.length} encontrado(s)
+            {lista.length} {abaLista === 'arquivados' ? 'arquivado(s)' : 'encontrado(s)'}
           </p>
         </div>
         <button onClick={abrirAdicionar} className="btn-primary">
           <Plus size={16} /> Novo cadastro
         </button>
+      </div>
+
+      {/* Tabs Ativos / Arquivados */}
+      <div className="flex gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1 mb-4 w-fit">
+        {[
+          { v: 'ativos', l: 'Ativos' },
+          { v: 'arquivados', l: 'Arquivados' },
+        ].map((t) => (
+          <button
+            key={t.v}
+            onClick={() => setAbaLista(t.v)}
+            className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+              abaLista === t.v
+                ? 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 shadow-sm'
+                : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+            }`}
+          >
+            {t.l}
+          </button>
+        ))}
       </div>
 
       {/* Filtros */}
@@ -291,14 +339,17 @@ export default function Criancas() {
                 <th className="table-header hidden md:table-cell">Responsável</th>
                 <th className="table-header hidden lg:table-cell">Telefone</th>
                 <th className="table-header hidden sm:table-cell">Continuação</th>
+                {abaLista === 'arquivados' && (
+                  <th className="table-header hidden md:table-cell">Motivo</th>
+                )}
                 <th className="table-header text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-50">
               {lista.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="table-cell text-center text-stone-400 py-10">
-                    Nenhum jovem ou menor encontrado.
+                  <td colSpan={abaLista === 'arquivados' ? 6 : 5} className="table-cell text-center text-stone-400 py-10">
+                    {abaLista === 'arquivados' ? 'Nenhum jovem ou menor arquivado.' : 'Nenhum jovem ou menor encontrado.'}
                   </td>
                 </tr>
               ) : (
@@ -326,6 +377,11 @@ export default function Criancas() {
                         {c.continuacao?.nome}
                       </span>
                     </td>
+                    {abaLista === 'arquivados' && (
+                      <td className="table-cell text-xs text-stone-500 hidden md:table-cell">
+                        {fmtMotivo(c.motivoArquivamento)}
+                      </td>
+                    )}
                     <td className="table-cell text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
@@ -357,13 +413,15 @@ export default function Criancas() {
                         >
                           <Pencil size={15} />
                         </button>
-                        <button
-                          onClick={() => setShowConfirmDelete(c)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                          title="Inativar"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        {abaLista === 'ativos' && (
+                          <button
+                            onClick={() => setShowConfirmDelete(c)}
+                            className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            title="Arquivar"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -874,19 +932,60 @@ export default function Criancas() {
         </Modal>
       )}
 
-      {/* Confirm Delete */}
+      {/* Modal Arquivar */}
       {showConfirmDelete && (
-        <Modal title="Inativar cadastro" onClose={() => setShowConfirmDelete(null)} size="sm">
-          <p className="text-sm text-stone-600 mb-5">
-            Deseja inativar{' '}
-            <strong>{showConfirmDelete.nomeCompleto}</strong>? O histórico será preservado.
+        <Modal
+          title="Arquivar cadastro"
+          onClose={() => { setShowConfirmDelete(null); setArquivamento({ motivo: '', observacao: '' }) }}
+          size="sm"
+        >
+          <p className="text-sm text-stone-600 dark:text-stone-400 mb-4">
+            Arquivando <strong>{showConfirmDelete.nomeCompleto}</strong>. O histórico será preservado.
           </p>
-          <div className="flex justify-end gap-3">
-            <button onClick={() => setShowConfirmDelete(null)} className="btn-secondary">
+          <div className="space-y-3">
+            <div>
+              <label className="label">Motivo *</label>
+              <select
+                className="input"
+                value={arquivamento.motivo}
+                onChange={(e) => setArquivamento({ ...arquivamento, motivo: e.target.value })}
+              >
+                <option value="">Selecione...</option>
+                <option value="casamento">Casamento</option>
+                <option value="transferencia_outra_congregacao">Transferência para outra congregação</option>
+                <option value="falecimento">Falecimento</option>
+                <option value="outros">Outros</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">
+                Observação{arquivamento.motivo === 'outros' ? ' *' : ' (opcional)'}
+              </label>
+              <textarea
+                className="input resize-none"
+                rows={3}
+                value={arquivamento.observacao}
+                onChange={(e) => setArquivamento({ ...arquivamento, observacao: e.target.value })}
+                placeholder={arquivamento.motivo === 'outros' ? 'Descreva o motivo...' : 'Detalhes adicionais (opcional)'}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-5">
+            <button
+              type="button"
+              onClick={() => { setShowConfirmDelete(null); setArquivamento({ motivo: '', observacao: '' }) }}
+              className="btn-secondary"
+              disabled={arquivando}
+            >
               Cancelar
             </button>
-            <button onClick={() => deletar(showConfirmDelete.id)} className="btn-danger">
-              Inativar
+            <button
+              type="button"
+              onClick={() => deletar(showConfirmDelete.id)}
+              className="btn-danger"
+              disabled={arquivando}
+            >
+              {arquivando ? 'Arquivando...' : 'Arquivar'}
             </button>
           </div>
         </Modal>
