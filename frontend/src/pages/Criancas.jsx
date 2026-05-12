@@ -115,6 +115,10 @@ export default function Criancas() {
 
   const salvar = async (e) => {
     e.preventDefault()
+    if (!editando && !fotoFile && !form.foto) {
+      error('Foto é obrigatória para novos cadastros.')
+      return
+    }
     setSalvando(true)
     try {
       let payload
@@ -558,7 +562,7 @@ export default function Criancas() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="label">Foto (JPG/PNG)</label>
+                  <label className="label">Foto (JPG/PNG){!editando && ' *'}</label>
                   <div className="flex items-center gap-4">
                     {fotoPreview && (
                       <img
