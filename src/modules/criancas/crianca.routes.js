@@ -19,7 +19,7 @@ router.get('/', perm('gerenciar_criancas'), controller.listar);
 router.get('/:id', perm('gerenciar_criancas'), controller.buscar);
 router.get(
   '/:id/historico',
-  perm('visualizar_dashboard'),
+  perm('gerenciar_criancas'),
   validate(filtroHistoricoSchema, 'query'),
   controller.historico
 );
