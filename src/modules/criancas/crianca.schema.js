@@ -24,7 +24,6 @@ const atualizarCriancaSchema = z.object({
   descricao: z.string().optional(),
   observacao: z.string().optional(),
   continuacaoId: z.string().uuid().optional(),
-  ativo: z.boolean().optional(),
 });
 
 const arquivarCriancaSchema = z

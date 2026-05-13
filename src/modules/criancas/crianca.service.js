@@ -1,6 +1,6 @@
 const prisma = require('../../config/prisma');
 const AppError = require('../../utils/AppError');
-const { criarCriancaSchema } = require('./crianca.schema');
+const { criarCriancaSchema, atualizarCriancaSchema } = require('./crianca.schema');
 
 const listar = async ({ continuacaoId, ativo = 'true', usuario } = {}) => {
   const where = {};
@@ -64,20 +64,21 @@ const criar = async (dados) => {
 const atualizar = async (id, dados) => {
   await buscarPorId(id);
 
-  if (dados.continuacaoId) {
+  const parsed = atualizarCriancaSchema.parse(dados);
+
+  if (parsed.continuacaoId) {
     const cont = await prisma.continuacao.findUnique({
-      where: { id: dados.continuacaoId },
+      where: { id: parsed.continuacaoId },
     });
     if (!cont) throw new AppError('Continuação não encontrada.', 404);
   }
 
-  const dataFormatada = dados.dataNascimento
-    ? { dataNascimento: new Date(dados.dataNascimento) }
-    : {};
-
   return prisma.crianca.update({
     where: { id },
-    data: { ...dados, ...dataFormatada },
+    data: {
+      ...parsed,
+      ...(parsed.dataNascimento ? { dataNascimento: new Date(parsed.dataNascimento) } : {}),
+    },
     include: { continuacao: { select: { id: true, nome: true } } },
   });
 };

@@ -957,18 +957,18 @@ export default function Criancas() {
                 <option value="outros">Outros</option>
               </select>
             </div>
-            <div>
-              <label className="label">
-                Observação{arquivamento.motivo === 'outros' ? ' *' : ' (opcional)'}
-              </label>
-              <textarea
-                className="input resize-none"
-                rows={3}
-                value={arquivamento.observacao}
-                onChange={(e) => setArquivamento({ ...arquivamento, observacao: e.target.value })}
-                placeholder={arquivamento.motivo === 'outros' ? 'Descreva o motivo...' : 'Detalhes adicionais (opcional)'}
-              />
-            </div>
+            {arquivamento.motivo === 'outros' && (
+              <div>
+                <label className="label">Observação *</label>
+                <textarea
+                  className="input resize-none"
+                  rows={3}
+                  value={arquivamento.observacao}
+                  onChange={(e) => setArquivamento({ ...arquivamento, observacao: e.target.value })}
+                  placeholder="Descreva o motivo..."
+                />
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-3 mt-5">
             <button
