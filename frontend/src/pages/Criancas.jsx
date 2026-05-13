@@ -58,7 +58,7 @@ export default function Criancas() {
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(null)
   const { success, error } = useToast()
-  const { temPermissao } = useAuth()
+  const { temPermissao, isAdminGeral } = useAuth()
   const histTransfCriancaRef = useRef(null)
   const [abaModal, setAbaModal] = useState('dados')
   const [histTransferencias, setHistTransferencias] = useState([])
@@ -118,7 +118,7 @@ export default function Criancas() {
     setFotoPreview(c.foto ? c.foto : null)
     setAbaModal('dados')
     setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
-    if (temPermissao('transferir_crianca')) {
+    if (isAdminGeral) {
       histTransfCriancaRef.current = c.id
       api.get(`/transferencias/crianca/${c.id}`)
         .then((r) => { if (histTransfCriancaRef.current === c.id) setHistTransferencias(r.data) })
@@ -452,7 +452,7 @@ export default function Criancas() {
               >
                 Dados
               </button>
-              {temPermissao('transferir_crianca') && (
+              {isAdminGeral && (
                 <button
                   type="button"
                   onClick={() => setAbaModal('transferir')}
