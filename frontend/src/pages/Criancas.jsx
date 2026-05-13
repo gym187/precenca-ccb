@@ -67,6 +67,15 @@ export default function Criancas() {
   const [visitasCrianca, setVisitasCrianca] = useState([])
   const [visitaDetalhe, setVisitaDetalhe] = useState(null)
   const [detalhe, setDetalhe] = useState(null)
+  const [abaDetalhe, setAbaDetalhe] = useState('dados')
+  const [detalheHistorico, setDetalheHistorico] = useState(null)
+  const [detalheLoadingHistorico, setDetalheLoadingHistorico] = useState(false)
+  const [detalheDataInicio, setDetalheDataInicio] = useState(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  )
+  const [detalheDataFim, setDetalheDataFim] = useState(
+    new Date().toISOString().slice(0, 10)
+  )
 
   const fetchCriancas = async () => {
     const params = new URLSearchParams({ ativo: abaLista === 'ativos' ? 'true' : 'false' })
@@ -259,6 +268,20 @@ export default function Criancas() {
 
   const toggleFiltroStatus = (status) => {
     setFiltroStatus((prev) => (prev === status ? null : status))
+  }
+
+  const buscarHistoricoDetalhe = async (criancaId) => {
+    setDetalheLoadingHistorico(true)
+    try {
+      const res = await api.get(`/criancas/${criancaId}/historico`, {
+        params: { dataInicio: detalheDataInicio, dataFim: detalheDataFim },
+      })
+      setDetalheHistorico(res.data)
+    } catch {
+      error('Erro ao buscar histórico.')
+    } finally {
+      setDetalheLoadingHistorico(false)
+    }
   }
 
   const historicoFiltrado = historico?.historico?.filter(
@@ -859,76 +882,200 @@ export default function Criancas() {
       {detalhe && (
         <Modal
           title={`Detalhe — ${detalhe.nomeCompleto}`}
-          onClose={() => setDetalhe(null)}
+          onClose={() => {
+            setDetalhe(null)
+            setAbaDetalhe('dados')
+            setDetalheHistorico(null)
+          }}
           size="lg"
         >
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <AvatarWithFallback foto={detalhe.foto} nome={detalhe.nomeCompleto} size="lg" />
-              <div className="flex-1 space-y-1">
-                <p className="text-lg font-semibold text-stone-800 dark:text-stone-100">{detalhe.nomeCompleto}</p>
-                <p className="text-sm text-stone-500">
-                  {detalhe.continuacao?.nome ?? todasContinuacoes.find((x) => x.id === detalhe.continuacaoId)?.nome}
-                </p>
-              </div>
-            </div>
+          {/* Tabs */}
+          <div className="flex border-b border-stone-200 dark:border-stone-700 mb-4 -mt-2">
+            <button
+              type="button"
+              onClick={() => setAbaDetalhe('dados')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                abaDetalhe === 'dados'
+                  ? 'border-stone-900 text-stone-900 dark:border-stone-100 dark:text-stone-100'
+                  : 'border-transparent text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'
+              }`}
+            >
+              Detalhes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAbaDetalhe('historico')
+                if (!detalheHistorico) buscarHistoricoDetalhe(detalhe.id)
+              }}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                abaDetalhe === 'historico'
+                  ? 'border-stone-900 text-stone-900 dark:border-stone-100 dark:text-stone-100'
+                  : 'border-transparent text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'
+              }`}
+            >
+              Histórico
+            </button>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Data de nascimento</p>
-                <p className="text-stone-700 dark:text-stone-300">
-                  {detalhe.dataNascimento
-                    ? new Date(detalhe.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')
-                    : '—'}
-                </p>
+          {abaDetalhe === 'dados' ? (
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <AvatarWithFallback foto={detalhe.foto} nome={detalhe.nomeCompleto} size="lg" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-lg font-semibold text-stone-800 dark:text-stone-100">{detalhe.nomeCompleto}</p>
+                  <p className="text-sm text-stone-500">
+                    {detalhe.continuacao?.nome ?? todasContinuacoes.find((x) => x.id === detalhe.continuacaoId)?.nome}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Responsável</p>
-                <p className="text-stone-700 dark:text-stone-300">{detalhe.nomeResponsavel}</p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone do responsável</p>
-                <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneResponsavel}</p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone da criança</p>
-                <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneCrianca || '—'}</p>
-              </div>
-            </div>
 
-            {detalhe.descricao && (
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Descrição</p>
-                <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-stone-50 dark:bg-stone-800 rounded-lg p-3">{detalhe.descricao}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Data de nascimento</p>
+                  <p className="text-stone-700 dark:text-stone-300">
+                    {detalhe.dataNascimento
+                      ? new Date(detalhe.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')
+                      : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Responsável</p>
+                  <p className="text-stone-700 dark:text-stone-300">{detalhe.nomeResponsavel}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone do responsável</p>
+                  <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneResponsavel}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone da criança</p>
+                  <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneCrianca || '—'}</p>
+                </div>
               </div>
-            )}
 
-            {detalhe.observacao && (
-              <div>
-                <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Observação</p>
-                <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">{detalhe.observacao}</p>
-              </div>
-            )}
+              {detalhe.descricao && (
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Descrição</p>
+                  <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-stone-50 dark:bg-stone-800 rounded-lg p-3">{detalhe.descricao}</p>
+                </div>
+              )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-stone-100 dark:border-stone-700">
-              <button
-                type="button"
-                onClick={() => { verHistorico(detalhe.id); setDetalhe(null) }}
-                className="btn-secondary"
-              >
-                <History size={14} /> Ver histórico
-              </button>
+              {detalhe.observacao && (
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Observação</p>
+                  <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">{detalhe.observacao}</p>
+                </div>
+              )}
+
               {temPermissao('gerenciar_criancas') && (
-                <button
-                  type="button"
-                  onClick={() => { abrirEditar(detalhe); setDetalhe(null) }}
-                  className="btn-primary"
-                >
-                  <Pencil size={14} /> Editar
-                </button>
+                <div className="flex justify-end pt-2 border-t border-stone-100 dark:border-stone-700">
+                  <button
+                    type="button"
+                    onClick={() => { abrirEditar(detalhe); setDetalhe(null); setAbaDetalhe('dados'); setDetalheHistorico(null) }}
+                    className="btn-primary"
+                  >
+                    <Pencil size={14} /> Editar
+                  </button>
+                </div>
               )}
             </div>
-          </div>
+          ) : (
+            <div>
+              {/* Filtro de período */}
+              <div className="flex gap-2 mb-4">
+                <div className="flex-1">
+                  <label className="label">De</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={detalheDataInicio}
+                    max={detalheDataFim}
+                    onChange={(e) => setDetalheDataInicio(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="label">Até</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={detalheDataFim}
+                    min={detalheDataInicio}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setDetalheDataFim(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary self-end"
+                  onClick={() => buscarHistoricoDetalhe(detalhe.id)}
+                  disabled={detalheLoadingHistorico}
+                >
+                  Buscar
+                </button>
+              </div>
+
+              {detalheLoadingHistorico && (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
+                </div>
+              )}
+
+              {!detalheLoadingHistorico && detalheHistorico && (
+                <>
+                  {/* Resumo */}
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-2.5 text-center">
+                      <p className="text-xl font-bold text-emerald-600">{detalheHistorico.estatisticas.presentes}</p>
+                      <p className="text-xs text-stone-400">Presenças</p>
+                    </div>
+                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2.5 text-center">
+                      <p className="text-xl font-bold text-red-500">{detalheHistorico.estatisticas.ausentes}</p>
+                      <p className="text-xs text-stone-400">Ausências</p>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2.5 text-center">
+                      <p className="text-xl font-bold text-amber-600">{detalheHistorico.estatisticas.justificados}</p>
+                      <p className="text-xs text-stone-400">Justificadas</p>
+                    </div>
+                  </div>
+
+                  {/* Lista */}
+                  <div className="space-y-1 max-h-72 overflow-y-auto">
+                    {detalheHistorico.historico.length === 0 ? (
+                      <p className="text-sm text-stone-400 text-center py-6">Nenhum registro encontrado neste período.</p>
+                    ) : (
+                      detalheHistorico.historico.map((p) => (
+                        <div
+                          key={p.id}
+                          className={`py-2.5 px-3 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/50 ${
+                            p.status === 'justificado' ? 'border-l-2 border-amber-400' : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-stone-600 dark:text-stone-400">
+                              {new Date(p.data).toLocaleDateString('pt-BR')}
+                            </span>
+                            <StatusPresenca status={p.status} />
+                          </div>
+                          {p.observacao && (
+                            <div className="flex items-start gap-1.5 mt-1.5">
+                              <MessageSquare size={12} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-stone-500 italic">{p.observacao}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+
+              {!detalheLoadingHistorico && !detalheHistorico && (
+                <p className="text-sm text-stone-400 text-center py-8">
+                  Selecione o período e clique em Buscar para ver o histórico.
+                </p>
+              )}
+            </div>
+          )}
         </Modal>
       )}
 
