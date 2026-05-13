@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { Plus, Pencil, Trash2, MapPin, Loader2 } from 'lucide-react'
 import api from '../api/client'
 import Modal from '../components/Modal'
@@ -33,6 +33,10 @@ export default function Visitas() {
   const [filtroStatus, setFiltroStatus] = useState('')
   const [filtroCont, setFiltroCont] = useState('')
   const [busca, setBusca] = useState('')
+
+  const [buscaCrianca, setBuscaCrianca] = useState('')
+  const [dropdownCrianca, setDropdownCrianca] = useState(false)
+  const dropdownRef = useRef(null)
 
   const fetchVisitas = async () => {
     const params = new URLSearchParams()
@@ -70,6 +74,7 @@ export default function Visitas() {
   const abrirAdicionar = () => {
     setEditando(null)
     setForm(FORM_VAZIO)
+    setBuscaCrianca('')
     setShowModal(true)
   }
 
@@ -84,11 +89,32 @@ export default function Visitas() {
       observacao:    v.observacao ?? '',
       status:        v.status,
     })
+    setBuscaCrianca(v.crianca?.nomeCompleto ?? '')
     setShowModal(true)
   }
 
+  const criancasFiltradas = useMemo(
+    () => criancas.filter((c) => c.nomeCompleto.toLowerCase().includes(buscaCrianca.toLowerCase())),
+    [criancas, buscaCrianca]
+  )
+
+  useEffect(() => {
+    if (!dropdownCrianca) return
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownCrianca(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownCrianca])
+
   const salvar = async (e) => {
     e.preventDefault()
+    if (!form.criancaId) {
+      error('Selecione um Jovem/Menor.')
+      return
+    }
     setSalvando(true)
     try {
       if (editando) {
@@ -247,14 +273,47 @@ export default function Visitas() {
         >
           <form onSubmit={salvar} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-2" ref={dropdownRef}>
                 <label className="label">Jovem / Menor *</label>
-                <select className="input" name="criancaId" value={form.criancaId} onChange={handleForm} required>
-                  <option value="">Selecione...</option>
-                  {criancas.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nomeCompleto} — {c.continuacao?.nome}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <input
+                    className="input"
+                    placeholder="Digite o nome para buscar..."
+                    value={buscaCrianca}
+                    onChange={(e) => {
+                      setBuscaCrianca(e.target.value)
+                      setForm({ ...form, criancaId: '' })
+                      setDropdownCrianca(true)
+                    }}
+                    onFocus={() => setDropdownCrianca(true)}
+                    autoComplete="off"
+                  />
+                  {dropdownCrianca && criancasFiltradas.length > 0 && (
+                    <ul className="absolute z-50 w-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg mt-1 max-h-52 overflow-y-auto">
+                      {criancasFiltradas.map((c) => (
+                        <li
+                          key={c.id}
+                          onMouseDown={() => {
+                            setForm({ ...form, criancaId: c.id })
+                            setBuscaCrianca(`${c.nomeCompleto} — ${c.continuacao?.nome ?? ''}`)
+                            setDropdownCrianca(false)
+                          }}
+                          className="px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 cursor-pointer"
+                        >
+                          {c.nomeCompleto}
+                          {c.continuacao?.nome && (
+                            <span className="text-xs text-stone-400 ml-1.5">— {c.continuacao.nome}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {dropdownCrianca && buscaCrianca && criancasFiltradas.length === 0 && (
+                    <div className="absolute z-50 w-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg mt-1 px-3 py-2 text-sm text-stone-400">
+                      Nenhum resultado para "{buscaCrianca}"
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="label">Data *</label>
