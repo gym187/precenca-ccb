@@ -7,7 +7,8 @@ function isIOS() {
 }
 
 function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches
+  return window.matchMedia('(display-mode: standalone)').matches ||
+    ('standalone' in navigator && navigator.standalone === true)
 }
 
 export default function InstallBanner() {
@@ -52,11 +53,13 @@ export default function InstallBanner() {
   }
 
   async function install() {
-    if (!deferredPrompt.current) return
-    deferredPrompt.current.prompt()
-    const { outcome } = await deferredPrompt.current.userChoice
+    const prompt = deferredPrompt.current
+    if (!prompt) return
     deferredPrompt.current = null
+    prompt.prompt()
+    const { outcome } = await prompt.userChoice
     if (outcome === 'accepted') setVisible(false)
+    else deferredPrompt.current = prompt
   }
 
   if (!visible) return null
@@ -75,6 +78,7 @@ export default function InstallBanner() {
       </p>
       {!ios && (
         <button
+          type="button"
           onClick={install}
           className="shrink-0 px-3 py-1.5 text-sm font-medium bg-stone-800 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg hover:bg-stone-700 dark:hover:bg-stone-200 transition-colors"
         >
