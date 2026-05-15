@@ -6,6 +6,10 @@ function isIOS() {
     (/Mac/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
 }
 
+function isAndroid() {
+  return /Android/.test(navigator.userAgent)
+}
+
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches ||
     ('standalone' in navigator && navigator.standalone === true)
@@ -14,6 +18,7 @@ function isStandalone() {
 export default function InstallBanner() {
   const [visible, setVisible] = useState(false)
   const [ios, setIos] = useState(false)
+  const [promptReady, setPromptReady] = useState(false)
   const deferredPrompt = useRef(null)
 
   useEffect(() => {
@@ -23,15 +28,16 @@ export default function InstallBanner() {
     const iosDevice = isIOS()
     setIos(iosDevice)
 
-    if (iosDevice) {
-      setVisible(true)
-      return
-    }
+    if (!iosDevice && !isAndroid()) return
+
+    setVisible(true)
+
+    if (iosDevice) return
 
     function handleBeforeInstallPrompt(e) {
       e.preventDefault()
       deferredPrompt.current = e
-      setVisible(true)
+      setPromptReady(true)
     }
 
     function handleAppInstalled() {
@@ -56,10 +62,14 @@ export default function InstallBanner() {
     const prompt = deferredPrompt.current
     if (!prompt) return
     deferredPrompt.current = null
+    setPromptReady(false)
     prompt.prompt()
     const { outcome } = await prompt.userChoice
     if (outcome === 'accepted') dismiss()
-    else deferredPrompt.current = prompt
+    else {
+      deferredPrompt.current = prompt
+      setPromptReady(true)
+    }
   }
 
   if (!visible) return null
@@ -76,7 +86,7 @@ export default function InstallBanner() {
           ? 'Toque em Compartilhar (□↑) e depois "Adicionar à tela inicial"'
           : 'Instale o CCB na sua tela inicial'}
       </p>
-      {!ios && (
+      {!ios && promptReady && (
         <button
           type="button"
           onClick={install}
