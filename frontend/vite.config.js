@@ -13,14 +13,8 @@ export default defineConfig({
       injectManifest: {
         globPatterns: [],
         injectionPoint: 'self.__WB_MANIFEST',
-        minify: false,
-        rollupOptions: {
-          output: {
-            format: 'es',
-          },
-          treeshake: false,
-        },
       },
+      disable: false,
       manifest: {
         name: 'CCB — Controle de Presenças',
         short_name: 'CCB Presenças',

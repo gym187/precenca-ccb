@@ -1,5 +1,5 @@
 // Injetado pelo vite-plugin-pwa (vazio — usamos cache manual)
-self.__WB_MANIFEST
+const _manifest = (self.__WB_MANIFEST = [])
 
 const CACHE = 'ccb-v1'
 const PRECACHE = ['/', '/offline']
