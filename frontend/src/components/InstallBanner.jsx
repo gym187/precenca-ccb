@@ -58,7 +58,7 @@ export default function InstallBanner() {
     deferredPrompt.current = null
     prompt.prompt()
     const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') setVisible(false)
+    if (outcome === 'accepted') dismiss()
     else deferredPrompt.current = prompt
   }
 
