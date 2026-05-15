@@ -86,6 +86,7 @@ export default function InstallBanner() {
         </button>
       )}
       <button
+        type="button"
         onClick={dismiss}
         className="shrink-0 p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors"
         aria-label="Fechar"
