@@ -2,7 +2,7 @@
 const _manifest = (self.__WB_MANIFEST = [])
 
 const CACHE = 'ccb-v1'
-const PRECACHE = ['/', '/offline']
+const PRECACHE = ['/', '/offline', '/pwa-192.png', '/pwa-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
             const clone = res.clone()
             caches.open(CACHE).then((c) => c.put(request, clone))
             return res
-          })
+          }).catch(() => new Response('', { status: 408, statusText: 'Offline' }))
       )
     )
     return
@@ -63,5 +63,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Resto: network-first simples
-  event.respondWith(fetch(request).catch(() => caches.match(request)))
+  event.respondWith(
+    fetch(request).catch(async () => (await caches.match(request)) ?? new Response('', { status: 503 }))
+  )
 })
