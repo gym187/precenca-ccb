@@ -886,6 +886,8 @@ export default function Criancas() {
             setDetalhe(null)
             setAbaDetalhe('dados')
             setDetalheHistorico(null)
+            setDetalheDataInicio(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+            setDetalheDataFim(new Date().toISOString().slice(0, 10))
           }}
           size="lg"
         >
@@ -971,7 +973,7 @@ export default function Criancas() {
                 <div className="flex justify-end pt-2 border-t border-stone-100 dark:border-stone-700">
                   <button
                     type="button"
-                    onClick={() => { abrirEditar(detalhe); setDetalhe(null); setAbaDetalhe('dados'); setDetalheHistorico(null) }}
+                    onClick={() => { abrirEditar(detalhe); setDetalhe(null); setAbaDetalhe('dados'); setDetalheHistorico(null); setDetalheDataInicio(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)); setDetalheDataFim(new Date().toISOString().slice(0, 10)) }}
                     className="btn-primary"
                   >
                     <Pencil size={14} /> Editar
@@ -1052,7 +1054,7 @@ export default function Criancas() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-stone-600 dark:text-stone-400">
-                              {new Date(p.data).toLocaleDateString('pt-BR')}
+                              {new Date(p.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')}
                             </span>
                             <StatusPresenca status={p.status} />
                           </div>
