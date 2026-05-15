@@ -13,6 +13,7 @@ import Continuacoes from './pages/Continuacoes'
 import Usuarios from './pages/Usuarios'
 import Relatorios from './pages/Relatorios'
 import Visitas from './pages/Visitas'
+import Offline from './pages/Offline'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Toast />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/offline" element={<Offline />} />
             <Route element={<PrivateRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
