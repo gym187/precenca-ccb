@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1c1917" rx="64"/>
+  <!-- Haste vertical da cruz -->
+  <rect x="240" y="28" width="32" height="92" fill="#f5f5f4"/>
+  <!-- Haste horizontal da cruz -->
+  <rect x="208" y="54" width="96" height="28" fill="#f5f5f4"/>
+  <!-- Telhado (triângulo) -->
+  <polygon points="112,212 256,112 400,212" fill="#f5f5f4"/>
+  <!-- Corpo da igreja -->
+  <rect x="140" y="212" width="232" height="188" fill="#f5f5f4"/>
+  <!-- Porta em arco -->
+  <path d="M206,400 L206,322 Q206,288 256,288 Q306,288 306,322 L306,400 Z" fill="#1c1917"/>
+  <!-- Janela esquerda -->
+  <rect x="158" y="248" width="56" height="56" fill="#1c1917" rx="28"/>
+  <!-- Janela direita -->
+  <rect x="298" y="248" width="56" height="56" fill="#1c1917" rx="28"/>
+  <!-- Texto CCB -->
+  <text x="256" y="464" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="64" font-weight="bold" fill="#f5f5f4">CCB</text>
+</svg>
