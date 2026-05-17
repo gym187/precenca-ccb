@@ -829,14 +829,14 @@ export default function Criancas() {
                   <button
                     key={s.label}
                     onClick={() => toggleFiltroStatus(s.status)}
-                    className={`rounded-lg p-3 text-center transition-all cursor-pointer ${
+                    className={`rounded-lg p-2 text-center transition-all cursor-pointer ${
                       filtroStatus === s.status
                         ? `${s.bg} ring-2 ring-offset-1 ring-stone-400`
                         : `${s.bg} hover:ring-1 hover:ring-stone-300`
                     }`}
                   >
                     <p className={`text-xl font-bold ${s.color}`}>{s.val ?? 0}</p>
-                    <p className="text-xs text-stone-400">{s.label}</p>
+                    <p className="text-[11px] leading-tight text-stone-400 break-words">{s.label}</p>
                   </button>
                 ))}
               </div>
