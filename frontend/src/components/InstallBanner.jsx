@@ -87,7 +87,9 @@ export default function InstallBanner() {
       <p className="flex-1 text-sm text-stone-700 dark:text-stone-300">
         {ios
           ? 'Toque em Compartilhar (□↑) e depois "Adicionar à tela inicial"'
-          : 'Instale o CCB na sua tela inicial'}
+          : promptReady
+            ? 'Instale o CCB na sua tela inicial'
+            : 'Toque em ⋮ e depois "Adicionar à tela inicial"'}
       </p>
       {!ios && promptReady && (
         <button
