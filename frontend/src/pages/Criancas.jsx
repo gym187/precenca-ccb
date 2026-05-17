@@ -821,10 +821,10 @@ export default function Criancas() {
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
-                  { label: 'Total', val: historico.estatisticas?.total, color: 'text-stone-700', bg: 'bg-stone-50', status: null },
-                  { label: 'Presenças', val: historico.estatisticas?.presentes, color: 'text-emerald-600', bg: 'bg-emerald-50', status: 'presente' },
-                  { label: 'Faltas', val: historico.estatisticas?.ausentes, color: 'text-red-500', bg: 'bg-red-50', status: 'ausente' },
-                  { label: 'Justificadas', val: historico.estatisticas?.justificados, color: 'text-amber-600', bg: 'bg-amber-50', status: 'justificado' },
+                  { label: 'Total',       short: 'Total',   val: historico.estatisticas?.total,        color: 'text-stone-700',  bg: 'bg-stone-50',  status: null },
+                  { label: 'Presenças',   short: 'Pres.',   val: historico.estatisticas?.presentes,    color: 'text-emerald-600', bg: 'bg-emerald-50', status: 'presente' },
+                  { label: 'Faltas',      short: 'Faltas',  val: historico.estatisticas?.ausentes,     color: 'text-red-500',    bg: 'bg-red-50',    status: 'ausente' },
+                  { label: 'Justificadas',short: 'Justif.', val: historico.estatisticas?.justificados, color: 'text-amber-600',  bg: 'bg-amber-50',  status: 'justificado' },
                 ].map((s) => (
                   <button
                     key={s.label}
@@ -836,7 +836,10 @@ export default function Criancas() {
                     }`}
                   >
                     <p className={`text-xl font-bold ${s.color}`}>{s.val ?? 0}</p>
-                    <p className="text-[11px] leading-tight text-stone-400 break-words">{s.label}</p>
+                    <p className="text-[11px] leading-tight text-stone-400">
+                      <span className="sm:hidden">{s.short}</span>
+                      <span className="hidden sm:inline">{s.label}</span>
+                    </p>
                   </button>
                 ))}
               </div>
