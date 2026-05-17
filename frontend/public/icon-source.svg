@@ -1,21 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
   <rect width="512" height="512" fill="#1c1917" rx="64"/>
-  <!-- Haste vertical da cruz -->
-  <rect x="240" y="28" width="32" height="92" fill="#f5f5f4"/>
-  <!-- Haste horizontal da cruz -->
-  <rect x="208" y="54" width="96" height="28" fill="#f5f5f4"/>
-  <!-- Telhado (triângulo) -->
-  <polygon points="112,212 256,112 400,212" fill="#f5f5f4"/>
-  <!-- Corpo da igreja -->
-  <rect x="140" y="212" width="232" height="188" fill="#f5f5f4"/>
-  <!-- Porta em arco -->
-  <path d="M206,400 L206,322 Q206,288 256,288 Q306,288 306,322 L306,400 Z" fill="#1c1917"/>
-  <!-- Janela esquerda -->
-  <rect x="158" y="248" width="56" height="56" fill="#1c1917" rx="28"/>
-  <!-- Janela direita -->
-  <rect x="298" y="248" width="56" height="56" fill="#1c1917" rx="28"/>
+
+  <!-- Páginas (margem direita) -->
+  <rect x="340" y="88" width="20" height="300" fill="#e8e3d8" rx="4"/>
+  <rect x="352" y="88" width="8" height="300" fill="#d8d3c8" rx="2"/>
+
+  <!-- Capa da Bíblia -->
+  <rect x="100" y="84" width="248" height="308" fill="#f5f5f4" rx="12"/>
+
+  <!-- Lombada -->
+  <rect x="100" y="84" width="32" height="308" fill="#dedad4" rx="12"/>
+  <rect x="116" y="84" width="16" height="308" fill="#dedad4"/>
+
+  <!-- Detalhe decorativo topo e base da lombada -->
+  <rect x="106" y="100" width="20" height="4" fill="#c8c4be" rx="2"/>
+  <rect x="106" y="372" width="20" height="4" fill="#c8c4be" rx="2"/>
+
+  <!-- Cruz vertical -->
+  <rect x="242" y="148" width="28" height="136" fill="#1c1917" rx="5"/>
+  <!-- Cruz horizontal -->
+  <rect x="200" y="192" width="112" height="28" fill="#1c1917" rx="5"/>
+
   <!-- Texto CCB -->
-  <text x="256" y="464" text-anchor="middle"
+  <text x="256" y="470" text-anchor="middle"
         font-family="Georgia, 'Times New Roman', serif"
-        font-size="64" font-weight="bold" fill="#f5f5f4">CCB</text>
+        font-size="60" font-weight="bold" fill="#f5f5f4">CCB</text>
 </svg>
