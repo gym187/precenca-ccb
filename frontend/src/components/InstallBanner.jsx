@@ -75,7 +75,10 @@ export default function InstallBanner() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 bg-white/95 dark:bg-stone-900/95 border-t border-stone-200 dark:border-stone-700 shadow-lg">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3 px-4 pt-3 bg-white/95 dark:bg-stone-900/95 border-t border-stone-200 dark:border-stone-700 shadow-lg"
+      style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+    >
       {ios ? (
         <Share size={20} className="shrink-0 text-stone-600 dark:text-stone-300" />
       ) : (

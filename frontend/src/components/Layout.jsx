@@ -37,7 +37,7 @@ export default function Layout() {
           <div className="w-9" />
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 sm:pb-0">
           <Outlet />
         </main>
       </div>
