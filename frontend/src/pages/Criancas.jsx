@@ -819,7 +819,7 @@ export default function Criancas() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-4 gap-3 mb-5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
                   { label: 'Total', val: historico.estatisticas?.total, color: 'text-stone-700', bg: 'bg-stone-50', status: null },
                   { label: 'Presenças', val: historico.estatisticas?.presentes, color: 'text-emerald-600', bg: 'bg-emerald-50', status: 'presente' },
