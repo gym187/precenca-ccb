@@ -123,7 +123,7 @@ export default function Usuarios() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="px-4 py-4 sm:p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="page-title">Usuários</h1>
@@ -142,91 +142,155 @@ export default function Usuarios() {
             <div className="w-7 h-7 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-stone-100">
-            <thead>
-              <tr>
-                <th className="table-header">Usuário</th>
-                <th className="table-header hidden md:table-cell">E-mail</th>
-                <th className="table-header">Roles</th>
-                <th className="table-header text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-50">
+          <>
+            {/* Mobile cards */}
+            <div className="block sm:hidden divide-y divide-stone-100 dark:divide-stone-700">
               {usuarios.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="table-cell text-center text-stone-400 py-10">
-                    Nenhum usuário encontrado.
-                  </td>
-                </tr>
+                <p className="text-center text-stone-400 py-10 text-sm px-4">Nenhum usuário encontrado.</p>
               ) : (
                 usuarios.map((u) => (
-                  <tr key={u.id} className="hover:bg-stone-50">
-                    <td className="table-cell">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-semibold text-stone-500 uppercase">
-                            {u.nome[0]}
-                          </span>
-                        </div>
-                        <span className="font-medium text-stone-800">{u.nome}</span>
+                  <div key={u.id} className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-stone-500 dark:text-stone-300 uppercase">{u.nome[0]}</span>
                       </div>
-                    </td>
-                    <td className="table-cell hidden md:table-cell text-stone-500">{u.email}</td>
-                    <td className="table-cell">
-                      <div className="flex flex-wrap gap-1.5">
-                        {u.roles?.map((r) => (
-                          <span
-                            key={r.id}
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              r.fixa
-                                ? 'bg-stone-800 text-white'
-                                : 'bg-stone-100 text-stone-600'
-                            }`}
-                          >
-                            {r.fixa && <Shield size={10} />}
-                            {r.nome}
-                            {!r.fixa && (
-                              <button
-                                onClick={() => removerRole(u.id, r.id)}
-                                className="ml-0.5 hover:text-red-500 transition-colors"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </span>
-                        ))}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-stone-800 dark:text-stone-100 truncate">{u.nome}</p>
+                        <p className="text-xs text-stone-400 mt-0.5 truncate">{u.email}</p>
                       </div>
-                    </td>
-                    <td className="table-cell text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => abrirContModal(u)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                          title="Gerenciar continuações"
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-stone-100 dark:border-stone-700">
+                      {u.roles?.map((r) => (
+                        <span
+                          key={r.id}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            r.fixa ? 'bg-stone-800 text-white' : 'bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                          }`}
                         >
-                          <BookOpen size={15} />
-                        </button>
-                        <button
-                          onClick={() => setShowRoleModal(u)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                          title="Atribuir role"
-                        >
-                          <UserPlus size={15} />
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete(u)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                          title="Remover"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                          {r.fixa && <Shield size={10} />}
+                          {r.nome}
+                          {!r.fixa && (
+                            <button onClick={() => removerRole(u.id, r.id)} className="ml-0.5 hover:text-red-500 transition-colors">×</button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5 mt-3">
+                      <button
+                        onClick={() => abrirContModal(u)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 transition-colors"
+                        title="Gerenciar continuações"
+                      >
+                        <BookOpen size={15} />
+                      </button>
+                      <button
+                        onClick={() => setShowRoleModal(u)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 transition-colors"
+                        title="Atribuir role"
+                      >
+                        <UserPlus size={15} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(u)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
+                        title="Remover"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <table className="min-w-full divide-y divide-stone-100">
+                <thead>
+                  <tr>
+                    <th className="table-header">Usuário</th>
+                    <th className="table-header hidden md:table-cell">E-mail</th>
+                    <th className="table-header">Roles</th>
+                    <th className="table-header text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50">
+                  {usuarios.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="table-cell text-center text-stone-400 py-10">
+                        Nenhum usuário encontrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    usuarios.map((u) => (
+                      <tr key={u.id} className="hover:bg-stone-50">
+                        <td className="table-cell">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
+                              <span className="text-xs font-semibold text-stone-500 uppercase">
+                                {u.nome[0]}
+                              </span>
+                            </div>
+                            <span className="font-medium text-stone-800">{u.nome}</span>
+                          </div>
+                        </td>
+                        <td className="table-cell hidden md:table-cell text-stone-500">{u.email}</td>
+                        <td className="table-cell">
+                          <div className="flex flex-wrap gap-1.5">
+                            {u.roles?.map((r) => (
+                              <span
+                                key={r.id}
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                  r.fixa
+                                    ? 'bg-stone-800 text-white'
+                                    : 'bg-stone-100 text-stone-600'
+                                }`}
+                              >
+                                {r.fixa && <Shield size={10} />}
+                                {r.nome}
+                                {!r.fixa && (
+                                  <button
+                                    onClick={() => removerRole(u.id, r.id)}
+                                    className="ml-0.5 hover:text-red-500 transition-colors"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="table-cell text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => abrirContModal(u)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                              title="Gerenciar continuações"
+                            >
+                              <BookOpen size={15} />
+                            </button>
+                            <button
+                              onClick={() => setShowRoleModal(u)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                              title="Atribuir role"
+                            >
+                              <UserPlus size={15} />
+                            </button>
+                            <button
+                              onClick={() => setConfirmDelete(u)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                              title="Remover"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
