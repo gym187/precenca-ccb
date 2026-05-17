@@ -289,7 +289,7 @@ export default function Criancas() {
   )
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="px-4 py-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -355,103 +355,189 @@ export default function Criancas() {
             <div className="w-7 h-7 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-stone-100">
-            <thead>
-              <tr>
-                <th className="table-header">Nome</th>
-                <th className="table-header hidden md:table-cell">Responsável</th>
-                <th className="table-header hidden lg:table-cell">Telefone</th>
-                <th className="table-header hidden sm:table-cell">Continuação</th>
-                {abaLista === 'arquivados' && (
-                  <th className="table-header hidden md:table-cell">Motivo</th>
-                )}
-                <th className="table-header text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-50">
+          <>
+            {/* Mobile cards */}
+            <div className="block sm:hidden divide-y divide-stone-100 dark:divide-stone-700">
               {lista.length === 0 ? (
-                <tr>
-                  <td colSpan={abaLista === 'arquivados' ? 6 : 5} className="table-cell text-center text-stone-400 py-10">
-                    {abaLista === 'arquivados' ? 'Nenhum jovem ou menor arquivado.' : 'Nenhum jovem ou menor encontrado.'}
-                  </td>
-                </tr>
+                <p className="text-center text-stone-400 py-10 text-sm px-4">
+                  {abaLista === 'arquivados' ? 'Nenhum jovem ou menor arquivado.' : 'Nenhum jovem ou menor encontrado.'}
+                </p>
               ) : (
                 lista.map((c) => (
-                  <tr key={c.id} className="hover:bg-stone-50">
-                    <td className="table-cell font-medium text-stone-800">
+                  <div key={c.id} className="p-4">
+                    <div className="flex items-center gap-3">
+                      <AvatarWithFallback foto={c.foto} nome={c.nomeCompleto} size="sm" />
                       <button
                         type="button"
                         onClick={() => setDetalhe(c)}
-                        className="flex items-center gap-2.5 text-left hover:text-stone-600 transition-colors"
+                        className="flex-1 text-left min-w-0"
                       >
-                        <AvatarWithFallback foto={c.foto} nome={c.nomeCompleto} size="sm" />
-                        <div>
-                          <span className="underline-offset-2 hover:underline">{c.nomeCompleto}</span>
-                          <p className="text-xs text-stone-400 mt-0.5 sm:hidden">
-                            {c.continuacao?.nome}
-                          </p>
-                        </div>
+                        <p className="font-semibold text-stone-800 dark:text-stone-100 truncate">{c.nomeCompleto}</p>
+                        <p className="text-xs text-stone-400 mt-0.5">{c.continuacao?.nome}</p>
                       </button>
-                    </td>
-                    <td className="table-cell hidden md:table-cell">{c.nomeResponsavel}</td>
-                    <td className="table-cell hidden lg:table-cell">{c.telefoneResponsavel}</td>
-                    <td className="table-cell hidden sm:table-cell">
-                      <span className="bg-stone-100 text-stone-600 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                        {c.continuacao?.nome}
-                      </span>
-                    </td>
-                    {abaLista === 'arquivados' && (
-                      <td className="table-cell text-xs text-stone-500 hidden md:table-cell">
-                        {fmtMotivo(c.motivoArquivamento)}
-                      </td>
-                    )}
-                    <td className="table-cell text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => verHistorico(c.id)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                          title="Ver histórico"
-                        >
-                          <History size={15} />
-                        </button>
-                        {c.telefoneResponsavel && (() => {
-                          const tel = c.telefoneResponsavel.replace(/\D/g, '')
-                          const msg = encodeURIComponent(`Paz de Deus ${c.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`)
-                          return (
-                            <a
-                              href={`https://wa.me/55${tel}?text=${msg}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Enviar WhatsApp"
-                              className="p-1.5 rounded-lg text-stone-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                            >
-                              <MessageCircle size={15} />
-                            </a>
-                          )
-                        })()}
-                        <button
-                          onClick={() => abrirEditar(c)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                          title="Editar"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        {abaLista === 'ativos' && (
-                          <button
-                            onClick={() => setShowConfirmDelete(c)}
-                            className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                            title="Arquivar"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-stone-100 dark:border-stone-700">
+                      <div>
+                        <p className="text-xs text-stone-400 uppercase tracking-wide">Responsável</p>
+                        <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{c.nomeResponsavel}</p>
                       </div>
-                    </td>
-                  </tr>
+                      <div>
+                        <p className="text-xs text-stone-400 uppercase tracking-wide">Telefone</p>
+                        <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{c.telefoneResponsavel || '—'}</p>
+                      </div>
+                      {abaLista === 'arquivados' && c.motivoArquivamento && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-stone-400 uppercase tracking-wide">Motivo</p>
+                          <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{fmtMotivo(c.motivoArquivamento)}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5 mt-3">
+                      <button
+                        onClick={() => verHistorico(c.id)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 transition-colors"
+                        title="Ver histórico"
+                      >
+                        <History size={15} />
+                      </button>
+                      {c.telefoneResponsavel && (() => {
+                        const tel = c.telefoneResponsavel.replace(/\D/g, '')
+                        const msg = encodeURIComponent(`Paz de Deus ${c.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`)
+                        return (
+                          <a
+                            href={`https://wa.me/55${tel}?text=${msg}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Enviar WhatsApp"
+                            className="p-1.5 rounded-lg text-stone-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 transition-colors"
+                          >
+                            <MessageCircle size={15} />
+                          </a>
+                        )
+                      })()}
+                      <button
+                        onClick={() => abrirEditar(c)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 transition-colors"
+                        title="Editar"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      {abaLista === 'ativos' && (
+                        <button
+                          onClick={() => setShowConfirmDelete(c)}
+                          className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
+                          title="Arquivar"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <table className="min-w-full divide-y divide-stone-100">
+                <thead>
+                  <tr>
+                    <th className="table-header">Nome</th>
+                    <th className="table-header hidden md:table-cell">Responsável</th>
+                    <th className="table-header hidden lg:table-cell">Telefone</th>
+                    <th className="table-header hidden sm:table-cell">Continuação</th>
+                    {abaLista === 'arquivados' && (
+                      <th className="table-header hidden md:table-cell">Motivo</th>
+                    )}
+                    <th className="table-header text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50">
+                  {lista.length === 0 ? (
+                    <tr>
+                      <td colSpan={abaLista === 'arquivados' ? 6 : 5} className="table-cell text-center text-stone-400 py-10">
+                        {abaLista === 'arquivados' ? 'Nenhum jovem ou menor arquivado.' : 'Nenhum jovem ou menor encontrado.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    lista.map((c) => (
+                      <tr key={c.id} className="hover:bg-stone-50">
+                        <td className="table-cell font-medium text-stone-800">
+                          <button
+                            type="button"
+                            onClick={() => setDetalhe(c)}
+                            className="flex items-center gap-2.5 text-left hover:text-stone-600 transition-colors"
+                          >
+                            <AvatarWithFallback foto={c.foto} nome={c.nomeCompleto} size="sm" />
+                            <div>
+                              <span className="underline-offset-2 hover:underline">{c.nomeCompleto}</span>
+                              <p className="text-xs text-stone-400 mt-0.5 sm:hidden">
+                                {c.continuacao?.nome}
+                              </p>
+                            </div>
+                          </button>
+                        </td>
+                        <td className="table-cell hidden md:table-cell">{c.nomeResponsavel}</td>
+                        <td className="table-cell hidden lg:table-cell">{c.telefoneResponsavel}</td>
+                        <td className="table-cell hidden sm:table-cell">
+                          <span className="bg-stone-100 text-stone-600 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                            {c.continuacao?.nome}
+                          </span>
+                        </td>
+                        {abaLista === 'arquivados' && (
+                          <td className="table-cell text-xs text-stone-500 hidden md:table-cell">
+                            {fmtMotivo(c.motivoArquivamento)}
+                          </td>
+                        )}
+                        <td className="table-cell text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => verHistorico(c.id)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                              title="Ver histórico"
+                            >
+                              <History size={15} />
+                            </button>
+                            {c.telefoneResponsavel && (() => {
+                              const tel = c.telefoneResponsavel.replace(/\D/g, '')
+                              const msg = encodeURIComponent(`Paz de Deus ${c.nomeResponsavel ?? 'Responsável'} sou auxiliar da ${c.nomeCompleto}, podemos conversar?`)
+                              return (
+                                <a
+                                  href={`https://wa.me/55${tel}?text=${msg}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Enviar WhatsApp"
+                                  className="p-1.5 rounded-lg text-stone-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                >
+                                  <MessageCircle size={15} />
+                                </a>
+                              )
+                            })()}
+                            <button
+                              onClick={() => abrirEditar(c)}
+                              className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                              title="Editar"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            {abaLista === 'ativos' && (
+                              <button
+                                onClick={() => setShowConfirmDelete(c)}
+                                className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                title="Arquivar"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
