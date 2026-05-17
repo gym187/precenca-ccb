@@ -156,7 +156,7 @@ export default function Visitas() {
   ]
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="px-4 py-4 sm:p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="page-title">Visitas</h1>
@@ -211,56 +211,109 @@ export default function Visitas() {
             <p className="text-sm">Nenhuma visita encontrada.</p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-stone-100">
-            <thead>
-              <tr>
-                <th className="table-header">Jovem / Menor</th>
-                <th className="table-header hidden sm:table-cell">Data e Hora</th>
-                <th className="table-header hidden md:table-cell">Endereço</th>
-                <th className="table-header hidden lg:table-cell">Responsável</th>
-                <th className="table-header">Status</th>
-                <th className="table-header text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-50">
+          <>
+            {/* Mobile cards */}
+            <div className="block sm:hidden divide-y divide-stone-100 dark:divide-stone-700">
               {lista.map((v) => (
-                <tr key={v.id} className="hover:bg-stone-50">
-                  <td className="table-cell">
-                    <p className="font-medium text-stone-800">{v.crianca?.nomeCompleto}</p>
-                    <p className="text-xs text-stone-400">{v.crianca?.continuacao?.nome}</p>
-                  </td>
-                  <td className="table-cell hidden sm:table-cell text-stone-600 text-sm">
-                    {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
-                  </td>
-                  <td className="table-cell hidden md:table-cell text-stone-600 text-sm">{v.endereco}</td>
-                  <td className="table-cell hidden lg:table-cell text-stone-600 text-sm">{v.responsavel?.nome}</td>
-                  <td className="table-cell">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[v.status]?.cls}`}>
+                <div key={v.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-stone-800 dark:text-stone-100 truncate">{v.crianca?.nomeCompleto}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">{v.crianca?.continuacao?.nome}</p>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 ${STATUS_CONFIG[v.status]?.cls}`}>
                       {STATUS_CONFIG[v.status]?.label}
                     </span>
-                  </td>
-                  <td className="table-cell text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => abrirEditar(v)}
-                        className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                        title="Editar"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmarDeletar(v)}
-                        className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                        title="Remover"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-stone-100 dark:border-stone-700">
+                    <div>
+                      <p className="text-xs text-stone-400 uppercase tracking-wide">Data e hora</p>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">
+                        {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                      </p>
                     </div>
-                  </td>
-                </tr>
+                    <div>
+                      <p className="text-xs text-stone-400 uppercase tracking-wide">Responsável</p>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{v.responsavel?.nome}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-stone-400 uppercase tracking-wide">Endereço</p>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{v.endereco}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 mt-3">
+                    <button
+                      onClick={() => abrirEditar(v)}
+                      className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      onClick={() => setConfirmarDeletar(v)}
+                      className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
+                      title="Remover"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <table className="min-w-full divide-y divide-stone-100">
+                <thead>
+                  <tr>
+                    <th className="table-header">Jovem / Menor</th>
+                    <th className="table-header hidden sm:table-cell">Data e Hora</th>
+                    <th className="table-header hidden md:table-cell">Endereço</th>
+                    <th className="table-header hidden lg:table-cell">Responsável</th>
+                    <th className="table-header">Status</th>
+                    <th className="table-header text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50">
+                  {lista.map((v) => (
+                    <tr key={v.id} className="hover:bg-stone-50">
+                      <td className="table-cell">
+                        <p className="font-medium text-stone-800">{v.crianca?.nomeCompleto}</p>
+                        <p className="text-xs text-stone-400">{v.crianca?.continuacao?.nome}</p>
+                      </td>
+                      <td className="table-cell hidden sm:table-cell text-stone-600 text-sm">
+                        {new Date(v.data.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} às {v.hora}
+                      </td>
+                      <td className="table-cell hidden md:table-cell text-stone-600 text-sm">{v.endereco}</td>
+                      <td className="table-cell hidden lg:table-cell text-stone-600 text-sm">{v.responsavel?.nome}</td>
+                      <td className="table-cell">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_CONFIG[v.status]?.cls}`}>
+                          {STATUS_CONFIG[v.status]?.label}
+                        </span>
+                      </td>
+                      <td className="table-cell text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => abrirEditar(v)}
+                            className="p-1.5 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
+                            title="Editar"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            onClick={() => setConfirmarDeletar(v)}
+                            className="p-1.5 rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            title="Remover"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
