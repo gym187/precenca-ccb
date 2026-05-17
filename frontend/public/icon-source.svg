@@ -17,11 +17,6 @@
   <rect x="106" y="100" width="20" height="4" fill="#c8c4be" rx="2"/>
   <rect x="106" y="372" width="20" height="4" fill="#c8c4be" rx="2"/>
 
-  <!-- Cruz vertical -->
-  <rect x="242" y="148" width="28" height="136" fill="#1c1917" rx="5"/>
-  <!-- Cruz horizontal -->
-  <rect x="200" y="192" width="112" height="28" fill="#1c1917" rx="5"/>
-
   <!-- Texto CCB -->
   <text x="256" y="470" text-anchor="middle"
         font-family="Georgia, 'Times New Roman', serif"
