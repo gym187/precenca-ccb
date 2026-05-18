@@ -398,6 +398,10 @@ export default function Criancas() {
                         <p className="text-xs text-stone-400 uppercase tracking-wide">Telefone</p>
                         <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{c.telefoneResponsavel || '—'}</p>
                       </div>
+                      <div>
+                        <p className="text-xs text-stone-400 uppercase tracking-wide">Idade</p>
+                        <p className="text-sm text-stone-700 dark:text-stone-300 mt-0.5">{calcularIdade(c.dataNascimento) ?? '—'}</p>
+                      </div>
                       {abaLista === 'arquivados' && c.motivoArquivamento && (
                         <div className="col-span-2">
                           <p className="text-xs text-stone-400 uppercase tracking-wide">Motivo</p>
