@@ -1,13 +1,33 @@
 // Injetado pelo vite-plugin-pwa (vazio — usamos cache manual)
 const _manifest = (self.__WB_MANIFEST = [])
 
-const CACHE = 'ccb-v1'
-const PRECACHE = ['/', '/offline', '/pwa-192.png', '/pwa-512.png']
+// Bump esta versao quando trocar icones ou outros assets de URL estavel
+const CACHE = 'ccb-v2-rjm'
+const PRECACHE = ['/', '/offline']
+// Icones tem URL estavel — forcamos fetch sem cache HTTP no install
+const PRECACHE_NOCACHE = [
+  '/pwa-192.png',
+  '/pwa-512.png',
+  '/pwa-192.png?v=2-rjm',
+  '/pwa-512.png?v=2-rjm',
+  '/manifest.webmanifest',
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
+      .then(async (cache) => {
+        await cache.addAll(PRECACHE)
+        // Bypass do HTTP cache para garantir versao nova dos icones
+        await Promise.all(
+          PRECACHE_NOCACHE.map(async (url) => {
+            try {
+              const res = await fetch(url, { cache: 'reload' })
+              if (res.ok) await cache.put(url, res)
+            } catch (_) { /* ignora falha individual */ }
+          })
+        )
+      })
       .then(() => self.skipWaiting())
   )
 })
