@@ -459,6 +459,7 @@ export default function Criancas() {
                     <th className="table-header hidden md:table-cell">Responsável</th>
                     <th className="table-header hidden lg:table-cell">Telefone</th>
                     <th className="table-header hidden sm:table-cell">Continuação</th>
+                    <th className="table-header hidden md:table-cell">Idade</th>
                     {abaLista === 'arquivados' && (
                       <th className="table-header hidden md:table-cell">Motivo</th>
                     )}
@@ -468,7 +469,7 @@ export default function Criancas() {
                 <tbody className="divide-y divide-stone-50">
                   {lista.length === 0 ? (
                     <tr>
-                      <td colSpan={abaLista === 'arquivados' ? 6 : 5} className="table-cell text-center text-stone-400 py-10">
+                      <td colSpan={abaLista === 'arquivados' ? 7 : 6} className="table-cell text-center text-stone-400 py-10">
                         {abaLista === 'arquivados' ? 'Nenhum jovem ou menor arquivado.' : 'Nenhum jovem ou menor encontrado.'}
                       </td>
                     </tr>
@@ -496,6 +497,9 @@ export default function Criancas() {
                           <span className="bg-stone-100 text-stone-600 px-2.5 py-0.5 rounded-full text-xs font-medium">
                             {c.continuacao?.nome}
                           </span>
+                        </td>
+                        <td className="table-cell hidden md:table-cell text-stone-500 text-sm">
+                          {calcularIdade(c.dataNascimento) ?? '—'}
                         </td>
                         {abaLista === 'arquivados' && (
                           <td className="table-cell text-xs text-stone-500 hidden md:table-cell">
