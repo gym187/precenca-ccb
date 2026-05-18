@@ -17,6 +17,19 @@ const fmtMotivo = (m) => {
   if (m.startsWith('outros: ')) return `Outros: ${m.slice(8)}`
   return MOTIVO_LABEL[m] ?? m
 }
+const calcularIdade = (dataNascimento) => {
+  if (!dataNascimento) return null
+  const nasc = new Date(dataNascimento.slice(0, 10) + 'T00:00:00')
+  const hoje = new Date()
+  const anos = hoje.getFullYear() - nasc.getFullYear()
+  const mesesDiff = hoje.getMonth() - nasc.getMonth()
+  const anosAjustados = (mesesDiff < 0 || (mesesDiff === 0 && hoje.getDate() < nasc.getDate())) ? anos - 1 : anos
+  if (anosAjustados < 1) {
+    const meses = (hoje.getFullYear() - nasc.getFullYear()) * 12 + (hoje.getMonth() - nasc.getMonth()) - (hoje.getDate() < nasc.getDate() ? 1 : 0)
+    return `${meses} ${meses === 1 ? 'mês' : 'meses'}`
+  }
+  return `${anosAjustados} ${anosAjustados === 1 ? 'ano' : 'anos'}`
+}
 
 const FORM_VAZIO = {
   nomeCompleto: '',
@@ -1026,7 +1039,7 @@ export default function Criancas() {
                   <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Data de nascimento</p>
                   <p className="text-stone-700 dark:text-stone-300">
                     {detalhe.dataNascimento
-                      ? new Date(detalhe.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')
+                      ? `${new Date(detalhe.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')} · ${calcularIdade(detalhe.dataNascimento)}`
                       : '—'}
                   </p>
                 </div>
