@@ -89,9 +89,15 @@ const lancarLista = async ({ data, tipoReuniao, presencas }, usuarioId, usuario)
   return { processados: resultados.length, resultados, erros };
 };
 
-const editar = async (id, { status, motivo }, usuarioId) => {
-  const presenca = await prisma.presenca.findUnique({ where: { id } });
+const editar = async (id, { status, motivo }, usuarioId, usuario) => {
+  const presenca = await prisma.presenca.findUnique({
+    where: { id },
+    include: { crianca: { select: { continuacaoId: true } } },
+  });
   if (!presenca) throw new AppError('Presença não encontrada.', 404);
+
+  if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(presenca.crianca.continuacaoId))
+    throw new AppError('Acesso negado.', 403);
 
   const atualizada = await prisma.presenca.update({
     where: { id },
@@ -137,9 +143,15 @@ const listar = async ({ criancaId, continuacaoId, data, dataInicio, dataFim, usu
   });
 };
 
-const buscarAuditoria = async (presencaId) => {
-  const presenca = await prisma.presenca.findUnique({ where: { id: presencaId } });
+const buscarAuditoria = async (presencaId, usuario) => {
+  const presenca = await prisma.presenca.findUnique({
+    where: { id: presencaId },
+    include: { crianca: { select: { continuacaoId: true } } },
+  });
   if (!presenca) throw new AppError('Presença não encontrada.', 404);
+
+  if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(presenca.crianca.continuacaoId))
+    throw new AppError('Acesso negado.', 403);
 
   return prisma.auditoriaPresenca.findMany({
     where: { presencaId },

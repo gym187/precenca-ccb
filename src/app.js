@@ -21,7 +21,11 @@ const app = express();
 
 // ─── Segurança e parsing ───────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors());
+
+const corsOrigins = process.env.FRONTEND_ORIGIN
+  ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:5173', 'http://localhost:8080'];
+app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
 app.use(morgan('dev'));
 

@@ -10,7 +10,7 @@ const router = Router();
 router.use(auth);
 
 router.get('/', controller.listar);
-router.get('/todas', controller.listarTodas);
+router.get('/todas', perm('gerenciar_continuacoes'), controller.listarTodas);
 router.get('/:id', controller.buscar);
 router.post('/', perm('gerenciar_continuacoes'), validate(criarContinuacaoSchema), controller.criar);
 router.put('/:id', perm('gerenciar_continuacoes'), validate(atualizarContinuacaoSchema), controller.atualizar);

@@ -26,7 +26,7 @@ const remover = async (req, res) => {
 };
 
 const atribuirRole = async (req, res) => {
-  const data = await service.atribuirRole(req.params.id, req.body.roleId);
+  const data = await service.atribuirRole(req.params.id, req.body.roleId, req.usuario);
   res.json(data);
 };
 

@@ -73,11 +73,14 @@ const remover = async (id) => {
   await prisma.usuario.delete({ where: { id } });
 };
 
-const atribuirRole = async (usuarioId, roleId) => {
+const atribuirRole = async (usuarioId, roleId, actor) => {
   await buscarPorId(usuarioId);
 
   const role = await prisma.role.findUnique({ where: { id: roleId } });
   if (!role) throw new AppError('Role não encontrada.', 404);
+
+  if (role.fixa && !actor?.isAdminGeral)
+    throw new AppError('Apenas ADMIN_GERAL pode atribuir roles fixas.', 403);
 
   await prisma.usuarioRole.upsert({
     where: { usuarioId_roleId: { usuarioId, roleId } },

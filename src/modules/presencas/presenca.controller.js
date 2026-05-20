@@ -6,7 +6,7 @@ const lancarLista = async (req, res) => {
 };
 
 const editar = async (req, res) => {
-  const data = await service.editar(req.params.id, req.body, req.usuario.id);
+  const data = await service.editar(req.params.id, req.body, req.usuario.id, req.usuario);
   res.json(data);
 };
 
@@ -16,7 +16,7 @@ const listar = async (req, res) => {
 };
 
 const auditoria = async (req, res) => {
-  const data = await service.buscarAuditoria(req.params.id);
+  const data = await service.buscarAuditoria(req.params.id, req.usuario);
   res.json(data);
 };
 

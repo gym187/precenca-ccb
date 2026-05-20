@@ -2,6 +2,11 @@ const prisma = require('../../config/prisma');
 const AppError = require('../../utils/AppError');
 const { criarCriancaSchema, atualizarCriancaSchema } = require('./crianca.schema');
 
+const _verificarAcesso = (crianca, usuario) => {
+  if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(crianca.continuacaoId))
+    throw new AppError('Acesso negado.', 403);
+};
+
 const listar = async ({ continuacaoId, ativo = 'true', usuario } = {}) => {
   const where = {};
 
@@ -61,8 +66,9 @@ const criar = async (dados) => {
   });
 };
 
-const atualizar = async (id, dados) => {
-  await buscarPorId(id);
+const atualizar = async (id, dados, usuario) => {
+  const crianca = await buscarPorId(id);
+  _verificarAcesso(crianca, usuario);
 
   const parsed = atualizarCriancaSchema.parse(dados);
 
@@ -83,8 +89,9 @@ const atualizar = async (id, dados) => {
   });
 };
 
-const remover = async (id, { motivo, observacao } = {}) => {
+const remover = async (id, { motivo, observacao } = {}, usuario) => {
   const crianca = await buscarPorId(id);
+  _verificarAcesso(crianca, usuario);
   if (!crianca.ativo) throw new AppError('Cadastro já está inativo.', 409);
 
   const motivoFinal = motivo === 'outros'
@@ -101,8 +108,9 @@ const remover = async (id, { motivo, observacao } = {}) => {
   });
 };
 
-const buscarHistorico = async (id, filtros = {}) => {
-  await buscarPorId(id);
+const buscarHistorico = async (id, filtros = {}, usuario) => {
+  const crianca = await buscarPorId(id);
+  _verificarAcesso(crianca, usuario);
 
   const where = { criancaId: id };
 
