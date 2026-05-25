@@ -45,7 +45,12 @@ export default function Usuarios() {
       setForm({ nome: '', email: '', senha: '' })
       fetchTudo()
     } catch (err) {
-      error(err.response?.data?.erro ?? 'Erro ao criar.')
+      const detalhes = err.response?.data?.detalhes
+      if (detalhes?.length) {
+        error(detalhes.map((d) => d.mensagem).join(' | '))
+      } else {
+        error(err.response?.data?.erro ?? 'Erro ao criar.')
+      }
     } finally {
       setSalvando(false)
     }
