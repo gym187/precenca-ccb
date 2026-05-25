@@ -688,7 +688,7 @@ export default function Criancas() {
                     required
                   >
                     <option value="">Selecione...</option>
-                    {todasContinuacoes.map((c) => (
+                    {continuacoes.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.nome}
                       </option>
