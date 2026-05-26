@@ -58,20 +58,17 @@ export default function Dashboard() {
   const [loadingCrianca, setLoadingCrianca] = useState(false)
   const [aba, setAba] = useState('resumo')
 
-  const carregarResumos = useCallback(async (conts, ini, fim) => {
+  const carregarResumos = useCallback(async (ini, fim) => {
     if (!ini || !fim || ini > fim) return
     setLoadingResumos(true)
-    const resumoMap = {}
-    await Promise.all(
-      conts.map(async (c) => {
-        try {
-          const r = await api.get(`/dashboard/continuacao/${c.id}?dataInicio=${ini}&dataFim=${fim}`)
-          resumoMap[c.id] = r.data
-        } catch {}
-      })
-    )
-    setResumos(resumoMap)
-    setLoadingResumos(false)
+    try {
+      const r = await api.get(`/dashboard/resumos?dataInicio=${ini}&dataFim=${fim}`)
+      const resumoMap = Object.fromEntries(r.data.map((item) => [item.continuacao.id, item]))
+      setResumos(resumoMap)
+    } catch {}
+    finally {
+      setLoadingResumos(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -85,7 +82,7 @@ export default function Dashboard() {
         setContinuacoes(contRes.data)
         setAniversariantes(anivRes.data)
         setFaltas(faltasRes.data)
-        await carregarResumos(contRes.data, dataInicio, dataFim)
+        await carregarResumos(dataInicio, dataFim)
       } finally {
         setLoading(false)
       }
@@ -96,7 +93,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (continuacoes.length === 0) return
-    const t = setTimeout(() => carregarResumos(continuacoes, dataInicio, dataFim), 500)
+    const t = setTimeout(() => carregarResumos(dataInicio, dataFim), 500)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataInicio, dataFim])
