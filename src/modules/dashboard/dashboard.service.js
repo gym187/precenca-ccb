@@ -300,4 +300,18 @@ const serieTemporal = async ({ dataInicio, dataFim }, usuario) => {
   };
 };
 
-module.exports = { resumoContinuacao, aniversariantesMes, faltasNoPeriodo, serieTemporal };
+// ─── Resumo de todas as continuações do usuário ──────────────────────────────
+
+const resumoTodasContinuacoes = async (params, usuario) => {
+  const continuacoes = await prisma.continuacao.findMany({
+    where: usuario.todasContinuacoes ? {} : { id: { in: usuario.continuacoes } },
+    select: { id: true },
+    orderBy: { nome: 'asc' },
+  });
+
+  return Promise.all(
+    continuacoes.map((c) => resumoContinuacao(c.id, params, usuario))
+  );
+};
+
+module.exports = { resumoContinuacao, resumoTodasContinuacoes, aniversariantesMes, faltasNoPeriodo, serieTemporal };
