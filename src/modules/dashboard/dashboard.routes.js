@@ -8,6 +8,9 @@ const router = Router();
 router.use(auth);
 router.use(perm('visualizar_dashboard'));
 
+// GET /api/dashboard/resumos?dataInicio=YYYY-MM-DD&dataFim=YYYY-MM-DD
+router.get('/resumos', controller.resumosGeral);
+
 // GET /api/dashboard/continuacao/:continuacaoId?mes=YYYY-MM&trimestre=1|2|3|4
 router.get('/continuacao/:continuacaoId', controller.resumoContinuacao);
 

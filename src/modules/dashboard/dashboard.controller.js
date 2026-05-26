@@ -5,6 +5,11 @@ const resumoContinuacao = async (req, res) => {
   res.json(data);
 };
 
+const resumosGeral = async (req, res) => {
+  const data = await service.resumoTodasContinuacoes(req.query, req.usuario);
+  res.json(data);
+};
+
 const aniversariantes = async (req, res) => {
   const data = await service.aniversariantesMes(req.query, req.usuario);
   res.json(data);
@@ -28,4 +33,4 @@ const serieTemporal = async (req, res, next) => {
   }
 };
 
-module.exports = { resumoContinuacao, aniversariantes, faltasNoPeriodo, serieTemporal };
+module.exports = { resumoContinuacao, resumosGeral, aniversariantes, faltasNoPeriodo, serieTemporal };
