@@ -131,6 +131,7 @@ model Crianca {
   nomeResponsavel     String
   telefoneResponsavel String
   telefoneCrianca     String?
+  endereco            String?  @db.VarChar(255)
   descricao           String?   @db.Text
   observacao          String?   @db.Text
   motivoArquivamento  String?

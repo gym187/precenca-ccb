@@ -37,6 +37,7 @@ const FORM_VAZIO = {
   nomeResponsavel: '',
   telefoneResponsavel: '',
   telefoneCrianca: '',
+  endereco: '',
   descricao: '',
   observacao: '',
   continuacaoId: '',
@@ -131,6 +132,7 @@ export default function Criancas() {
       nomeResponsavel: c.nomeResponsavel,
       telefoneResponsavel: c.telefoneResponsavel,
       telefoneCrianca: c.telefoneCrianca ?? '',
+      endereco: c.endereco ?? '',
       descricao: c.descricao ?? '',
       observacao: c.observacao ?? '',
       continuacaoId: c.continuacaoId,
@@ -385,7 +387,14 @@ export default function Criancas() {
                         onClick={() => setDetalhe(c)}
                         className="flex-1 text-left min-w-0"
                       >
-                        <p className="font-semibold text-stone-800 dark:text-stone-100 truncate">{c.nomeCompleto}</p>
+                        <p className="font-semibold text-stone-800 dark:text-stone-100 truncate flex items-center gap-1.5">
+                          <span className="truncate">{c.nomeCompleto}</span>
+                          {c.endereco && (
+                            <span title={c.endereco} className="shrink-0 inline-flex">
+                              <MapPin size={13} className="text-stone-400" />
+                            </span>
+                          )}
+                        </p>
                         <p className="text-xs text-stone-400 mt-0.5">{c.continuacao?.nome}</p>
                       </button>
                     </div>
@@ -489,6 +498,11 @@ export default function Criancas() {
                             <AvatarWithFallback foto={c.foto} nome={c.nomeCompleto} size="sm" />
                             <div>
                               <span className="underline-offset-2 hover:underline">{c.nomeCompleto}</span>
+                              {c.endereco && (
+                                <span title={c.endereco} className="inline-flex ml-1.5 align-middle">
+                                  <MapPin size={13} className="text-stone-400" />
+                                </span>
+                              )}
                               <p className="text-xs text-stone-400 mt-0.5 sm:hidden">
                                 {c.continuacao?.nome}
                               </p>
@@ -725,6 +739,17 @@ export default function Criancas() {
                     value={form.telefoneCrianca}
                     onChange={handleForm}
                     placeholder="Opcional"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label">Endereço</label>
+                  <input
+                    className="input"
+                    name="endereco"
+                    value={form.endereco}
+                    onChange={handleForm}
+                    maxLength={255}
+                    placeholder="Rua, número, bairro, cidade (opcional)"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -1063,6 +1088,15 @@ export default function Criancas() {
                   <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Telefone da criança</p>
                   <p className="text-stone-700 dark:text-stone-300">{detalhe.telefoneCrianca || '—'}</p>
                 </div>
+                {detalhe.endereco && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs text-stone-400 uppercase font-semibold mb-0.5">Endereço</p>
+                    <p className="text-stone-700 dark:text-stone-300 flex items-start gap-1.5">
+                      <MapPin size={14} className="text-stone-400 mt-0.5 shrink-0" />
+                      <span>{detalhe.endereco}</span>
+                    </p>
+                  </div>
+                )}
               </div>
 
               {detalhe.descricao && (
