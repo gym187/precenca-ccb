@@ -3,6 +3,11 @@ services:
     image: mariadb:10.11
     container_name: ccb_db
     restart: unless-stopped
+    command: >
+      --slow-query-log=1
+      --slow-query-log-file=/var/log/mysql/slow.log
+      --long-query-time=1
+      --log-queries-not-using-indexes=1
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ccb
@@ -12,6 +17,7 @@ services:
     #   - "3307:3306"  # Descomente apenas para debug local
     volumes:
       - db_data:/var/lib/mysql
+      - db_logs:/var/log/mysql
     networks:
       - internal
     healthcheck:
@@ -68,6 +74,7 @@ services:
 
 volumes:
   db_data:
+  db_logs:
   uploads_data:
 
 networks:

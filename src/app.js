@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const path = require('path');
 
 const authRoutes = require('./modules/auth/auth.routes');
@@ -21,6 +22,7 @@ const app = express();
 
 // ─── Segurança e parsing ───────────────────────────────────────────────────
 app.use(helmet());
+app.use(compression());
 
 const corsOrigins = process.env.FRONTEND_ORIGIN
   ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
