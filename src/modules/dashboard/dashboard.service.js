@@ -150,10 +150,10 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) =
 
   if (criancas.length === 0) return [];
 
-  // Janela de 90 dias é suficiente para identificar sequências; reuniões
-  // ocorrem semanalmente, então ~12 lançamentos cobrem qualquer streak real.
+  // Janela de 30 dias — alerta foca em ausências recentes e acionáveis.
+  // Jovens que sumiram há mais tempo são outro tipo de demanda pastoral.
   const inicio = new Date();
-  inicio.setDate(inicio.getDate() - 90);
+  inicio.setDate(inicio.getDate() - 30);
 
   const presencas = await prisma.presenca.findMany({
     where: {
@@ -170,16 +170,17 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) =
     porCrianca[p.criancaId].push(p);
   }
 
-  // Conta consecutivas a partir da última presença. Ignora faltas anteriores
-  // a um contato já registrado — se o auxiliar marcou "✓ contatado" após a
-  // falta, ela sai do alerta até uma falta nova depois disso.
+  // Conta apenas AUSENTES consecutivas. Justificado é presença abonada
+  // (recesso, doença, viagem) e quebra a sequência igual a presente.
+  // Também ignora faltas anteriores ao último contato registrado — se o
+  // auxiliar marcou "✓ contatado", sai do alerta até uma falta nova.
   const consecutivas = {};
   const mapaCriancas = new Map(criancas.map((c) => [c.id, c]));
   for (const [id, registros] of Object.entries(porCrianca)) {
     const ultimoContato = mapaCriancas.get(id)?.ultimoContatoEm;
     let count = 0;
     for (const r of registros) {
-      if (r.status === 'presente') break;
+      if (r.status !== 'ausente') break;
       if (ultimoContato && r.data <= ultimoContato) break;
       count++;
     }
