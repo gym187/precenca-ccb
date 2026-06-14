@@ -3,6 +3,7 @@ import { FileDown, Loader2 } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { hojeISO } from '../utils/date'
 
 const PERIODOS = [
   { v: '1m', l: 'Último mês' },
@@ -51,7 +52,7 @@ export default function Relatorios() {
   const baixar = async (tipo) => {
     setLoading((p) => ({ ...p, [tipo]: true }))
     try {
-      const data = new Date().toISOString().slice(0, 10)
+      const data = hojeISO()
       if (tipo === 'geral') {
         await baixarPdf(`/relatorios/geral?periodo=${periodo}`, `relatorio_geral_${data}.pdf`)
       } else if (tipo === 'administrativo') {

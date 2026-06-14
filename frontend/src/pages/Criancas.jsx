@@ -6,6 +6,7 @@ import PdfPreview from '../components/PdfPreview'
 import { AvatarWithFallback } from '../components/Avatar'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../contexts/AuthContext'
+import { hojeISO, diasAtrasISO } from '../utils/date'
 
 const MOTIVO_LABEL = {
   casamento: 'Casamento',
@@ -84,12 +85,8 @@ export default function Criancas() {
   const [abaDetalhe, setAbaDetalhe] = useState('dados')
   const [detalheHistorico, setDetalheHistorico] = useState(null)
   const [detalheLoadingHistorico, setDetalheLoadingHistorico] = useState(false)
-  const [detalheDataInicio, setDetalheDataInicio] = useState(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  )
-  const [detalheDataFim, setDetalheDataFim] = useState(
-    new Date().toISOString().slice(0, 10)
-  )
+  const [detalheDataInicio, setDetalheDataInicio] = useState(diasAtrasISO(30))
+  const [detalheDataFim, setDetalheDataFim] = useState(hojeISO())
 
   const fetchCriancas = async () => {
     const params = new URLSearchParams({ ativo: abaLista === 'ativos' ? 'true' : 'false' })
@@ -141,7 +138,7 @@ export default function Criancas() {
     setFotoFile(null)
     setFotoPreview(c.foto ? c.foto : null)
     setAbaModal('dados')
-    setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
+    setFormTransf({ continuacaoDestinoId: '', dataTransferencia: hojeISO() })
     if (isAdminGeral) {
       histTransfCriancaRef.current = c.id
       api.get(`/transferencias/crianca/${c.id}`)
@@ -268,7 +265,7 @@ export default function Criancas() {
       success('Criança transferida com sucesso.')
       setEditando((prev) => ({ ...prev, continuacaoId: formTransf.continuacaoDestinoId }))
       fetchCriancas()
-      setFormTransf({ continuacaoDestinoId: '', dataTransferencia: new Date().toISOString().slice(0, 10) })
+      setFormTransf({ continuacaoDestinoId: '', dataTransferencia: hojeISO() })
       const r = await api.get(`/transferencias/crianca/${editando.id}`)
       setHistTransferencias(r.data)
     } catch (err) {
@@ -1021,8 +1018,8 @@ export default function Criancas() {
             setDetalhe(null)
             setAbaDetalhe('dados')
             setDetalheHistorico(null)
-            setDetalheDataInicio(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
-            setDetalheDataFim(new Date().toISOString().slice(0, 10))
+            setDetalheDataInicio(diasAtrasISO(30))
+            setDetalheDataFim(hojeISO())
           }}
           size="lg"
         >
@@ -1117,7 +1114,7 @@ export default function Criancas() {
                 <div className="flex justify-end pt-2 border-t border-stone-100 dark:border-stone-700">
                   <button
                     type="button"
-                    onClick={() => { abrirEditar(detalhe); setDetalhe(null); setAbaDetalhe('dados'); setDetalheHistorico(null); setDetalheDataInicio(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)); setDetalheDataFim(new Date().toISOString().slice(0, 10)) }}
+                    onClick={() => { abrirEditar(detalhe); setDetalhe(null); setAbaDetalhe('dados'); setDetalheHistorico(null); setDetalheDataInicio(diasAtrasISO(30)); setDetalheDataFim(hojeISO()) }}
                     className="btn-primary"
                   >
                     <Pencil size={14} /> Editar
@@ -1146,7 +1143,7 @@ export default function Criancas() {
                     className="input"
                     value={detalheDataFim}
                     min={detalheDataInicio}
-                    max={new Date().toISOString().slice(0, 10)}
+                    max={hojeISO()}
                     onChange={(e) => setDetalheDataFim(e.target.value)}
                   />
                 </div>

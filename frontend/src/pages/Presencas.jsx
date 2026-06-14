@@ -4,6 +4,7 @@ import api from '../api/client'
 import { useToast } from '../contexts/ToastContext'
 import Modal from '../components/Modal'
 import { AvatarWithFallback } from '../components/Avatar'
+import { hojeISO } from '../utils/date'
 
 const STATUS_ICONES = {
   presente: <CheckCircle size={16} className="text-emerald-500" />,
@@ -43,7 +44,7 @@ function BotaoStatus({ status, current, onChange }) {
 export default function Presencas() {
   const [continuacoes, setContinuacoes] = useState([])
   const [continuacaoId, setContinuacaoId] = useState('')
-  const [data, setData] = useState(new Date().toISOString().slice(0, 10))
+  const [data, setData] = useState(hojeISO())
   const [criancas, setCriancas] = useState([])
   const [presencaMap, setPresencaMap] = useState({})
   const [observacaoMap, setObservacaoMap] = useState({})

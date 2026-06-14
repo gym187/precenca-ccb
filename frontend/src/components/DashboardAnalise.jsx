@@ -8,7 +8,12 @@ import { useTheme } from '../contexts/ThemeContext'
 
 const CORES = ['#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#ec4899', '#14b8a6']
 
-const toISO = (d) => d.toISOString().slice(0, 10)
+const toISO = (d) => {
+  const ano = d.getFullYear()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${ano}-${mes}-${dia}`
+}
 
 const defaultInicio = () => {
   const d = new Date()

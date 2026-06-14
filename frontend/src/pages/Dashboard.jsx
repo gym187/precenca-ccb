@@ -20,7 +20,12 @@ import Modal from '../components/Modal'
 import { AvatarWithFallback } from '../components/Avatar'
 import DashboardAnalise from '../components/DashboardAnalise'
 
-const toISO = (d) => d.toISOString().slice(0, 10)
+const toISO = (d) => {
+  const ano = d.getFullYear()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${ano}-${mes}-${dia}`
+}
 
 const defaultInicio = () => {
   const d = new Date()
