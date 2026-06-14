@@ -136,6 +136,7 @@ model Crianca {
   observacao          String?   @db.Text
   motivoArquivamento  String?
   dataArquivamento    DateTime?
+  ultimoContatoEm     DateTime?
   continuacaoId       String
   ativo               Boolean  @default(true)
 

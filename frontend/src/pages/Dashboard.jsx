@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Baby, AlertTriangle, Cake, Building2, ArrowRight, FileDown, MessageCircle } from 'lucide-react'
+import { Baby, AlertTriangle, Cake, Building2, ArrowRight, FileDown, MessageCircle, Check } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -15,6 +15,7 @@ import {
 import api from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useToast } from '../contexts/ToastContext'
 import PdfPreview from '../components/PdfPreview'
 import Modal from '../components/Modal'
 import { AvatarWithFallback } from '../components/Avatar'
@@ -47,10 +48,12 @@ const percBgClass = (p) =>
 export default function Dashboard() {
   const { isAdminGeral } = useAuth()
   const { dark } = useTheme()
+  const { success, error } = useToast()
 
   const [continuacoes, setContinuacoes] = useState([])
   const [aniversariantes, setAniversariantes] = useState([])
   const [faltas, setFaltas] = useState([])
+  const [marcandoContato, setMarcandoContato] = useState({})
   const [resumos, setResumos] = useState({})
   const [loading, setLoading] = useState(true)
   const [dataInicio, setDataInicio] = useState(defaultInicio)
@@ -108,6 +111,23 @@ export default function Dashboard() {
   const abrirDetalheContinuacao = (c) => {
     const r = resumos[c.id]
     setContDetalhe({ ...c, resumo: r })
+  }
+
+  const marcarContato = async (id) => {
+    setMarcandoContato((p) => ({ ...p, [id]: true }))
+    try {
+      await api.post(`/criancas/${id}/contato`)
+      setFaltas((prev) => prev.filter((c) => c.id !== id))
+      success('Contato registrado.')
+    } catch {
+      error('Não foi possível registrar o contato.')
+    } finally {
+      setMarcandoContato((p) => {
+        const next = { ...p }
+        delete next[id]
+        return next
+      })
+    }
   }
 
   const abrirDetalheCrianca = async (id) => {
@@ -387,6 +407,15 @@ export default function Dashboard() {
                           <MessageCircle size={16} />
                         </a>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); marcarContato(c.id) }}
+                        disabled={!!marcandoContato[c.id]}
+                        title="Marcar como contatado (remove do alerta)"
+                        className="text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 disabled:opacity-50 transition-colors"
+                      >
+                        <Check size={16} />
+                      </button>
                     </div>
                   </div>
                 )

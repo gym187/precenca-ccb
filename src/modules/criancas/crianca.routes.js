@@ -27,4 +27,9 @@ router.post('/', perm('gerenciar_criancas'), upload.single('foto'), controller.c
 router.put('/:id', perm('gerenciar_criancas'), upload.single('foto'), controller.atualizar);
 router.delete('/:id', perm('gerenciar_criancas'), validate(arquivarCriancaSchema), controller.remover);
 
+// Marca a criança como "contatada" — usado no alerta de faltas consecutivas
+// para ocultar até a próxima falta nova. Requer apenas visualizar_dashboard
+// (mesma permissão de quem enxerga o alerta).
+router.post('/:id/contato', perm('visualizar_dashboard'), controller.marcarContato);
+
 module.exports = router;

@@ -32,4 +32,8 @@ const remover = async (req, res) => {
 const historico = async (req, res) =>
   res.json(await service.buscarHistorico(req.params.id, req.query, req.usuario));
 
-module.exports = { listar, buscar, criar, atualizar, remover, historico };
+const marcarContato = async (req, res) => {
+  res.json(await service.marcarContato(req.params.id, req.usuario));
+};
+
+module.exports = { listar, buscar, criar, atualizar, remover, historico, marcarContato };

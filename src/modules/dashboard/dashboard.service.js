@@ -143,6 +143,7 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) =
       nomeCompleto: true,
       nomeResponsavel: true,
       telefoneResponsavel: true,
+      ultimoContatoEm: true,
       continuacao: { select: { nome: true } },
     },
   });
@@ -169,11 +170,17 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) =
     porCrianca[p.criancaId].push(p);
   }
 
+  // Conta consecutivas a partir da última presença. Ignora faltas anteriores
+  // a um contato já registrado — se o auxiliar marcou "✓ contatado" após a
+  // falta, ela sai do alerta até uma falta nova depois disso.
   const consecutivas = {};
+  const mapaCriancas = new Map(criancas.map((c) => [c.id, c]));
   for (const [id, registros] of Object.entries(porCrianca)) {
+    const ultimoContato = mapaCriancas.get(id)?.ultimoContatoEm;
     let count = 0;
     for (const r of registros) {
       if (r.status === 'presente') break;
+      if (ultimoContato && r.data <= ultimoContato) break;
       count++;
     }
     consecutivas[id] = count;
@@ -181,7 +188,14 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) =
 
   return criancas
     .filter((c) => (consecutivas[c.id] ?? 0) >= Number(minFaltas))
-    .map((c) => ({ ...c, faltasConsecutivas: consecutivas[c.id] }))
+    .map((c) => ({
+      id: c.id,
+      nomeCompleto: c.nomeCompleto,
+      nomeResponsavel: c.nomeResponsavel,
+      telefoneResponsavel: c.telefoneResponsavel,
+      continuacao: c.continuacao,
+      faltasConsecutivas: consecutivas[c.id],
+    }))
     .sort((a, b) => b.faltasConsecutivas - a.faltasConsecutivas);
 };
 

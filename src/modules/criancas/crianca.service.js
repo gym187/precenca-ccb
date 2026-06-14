@@ -177,4 +177,15 @@ const buscarHistorico = async (id, filtros = {}, usuario) => {
   };
 };
 
-module.exports = { listar, buscarPorId, criar, atualizar, remover, buscarHistorico };
+const marcarContato = async (id, usuario) => {
+  const crianca = await prisma.crianca.findUnique({ where: { id } });
+  if (!crianca) throw new AppError('Criança não encontrada.', 404);
+  _verificarAcesso(crianca, usuario);
+  return prisma.crianca.update({
+    where: { id },
+    data: { ultimoContatoEm: new Date() },
+    select: { id: true, ultimoContatoEm: true },
+  });
+};
+
+module.exports = { listar, buscarPorId, criar, atualizar, remover, buscarHistorico, marcarContato };
