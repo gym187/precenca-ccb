@@ -118,9 +118,14 @@ const aniversariantesMes = async ({ continuacaoId, mes } = {}, usuario) => {
     .sort((a, b) => new Date(a.dataNascimento).getDate() - new Date(b.dataNascimento).getDate());
 };
 
-// ─── Faltas no período ──────────────────────────────────────────────────────
+// ─── Faltas consecutivas ────────────────────────────────────────────────────
+//
+// Conta faltas em sequência a partir da última presença registrada.
+// Se a criança esteve presente na última reunião lançada, sai do alerta.
+// Default: 2 faltas seguidas (anteriormente o endpoint contava o total de
+// faltas em 30 dias, o que mantinha a criança em alerta o mês inteiro).
 
-const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 3 } = {}, usuario) => {
+const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 2 } = {}, usuario) => {
   const where = { ativo: true };
   if (continuacaoId) {
     if (usuario && !usuario.todasContinuacoes && !usuario.continuacoes.includes(continuacaoId)) {
@@ -144,27 +149,40 @@ const faltasNoPeriodo = async ({ continuacaoId, minFaltas = 3 } = {}, usuario) =
 
   if (criancas.length === 0) return [];
 
-  const inicio30d = new Date();
-  inicio30d.setDate(inicio30d.getDate() - 30);
+  // Janela de 90 dias é suficiente para identificar sequências; reuniões
+  // ocorrem semanalmente, então ~12 lançamentos cobrem qualquer streak real.
+  const inicio = new Date();
+  inicio.setDate(inicio.getDate() - 90);
 
-  const faltas = await prisma.presenca.findMany({
+  const presencas = await prisma.presenca.findMany({
     where: {
       criancaId: { in: criancas.map((c) => c.id) },
-      data: { gte: inicio30d },
-      status: { not: 'presente' },
+      data: { gte: inicio },
     },
-    select: { criancaId: true },
+    select: { criancaId: true, data: true, status: true },
+    orderBy: { data: 'desc' },
   });
 
-  const contagemFaltas = {};
-  for (const f of faltas) {
-    contagemFaltas[f.criancaId] = (contagemFaltas[f.criancaId] ?? 0) + 1;
+  const porCrianca = {};
+  for (const p of presencas) {
+    if (!porCrianca[p.criancaId]) porCrianca[p.criancaId] = [];
+    porCrianca[p.criancaId].push(p);
+  }
+
+  const consecutivas = {};
+  for (const [id, registros] of Object.entries(porCrianca)) {
+    let count = 0;
+    for (const r of registros) {
+      if (r.status === 'presente') break;
+      count++;
+    }
+    consecutivas[id] = count;
   }
 
   return criancas
-    .filter((c) => (contagemFaltas[c.id] ?? 0) >= Number(minFaltas))
-    .map((c) => ({ ...c, faltasNoPeriodo: contagemFaltas[c.id] }))
-    .sort((a, b) => b.faltasNoPeriodo - a.faltasNoPeriodo);
+    .filter((c) => (consecutivas[c.id] ?? 0) >= Number(minFaltas))
+    .map((c) => ({ ...c, faltasConsecutivas: consecutivas[c.id] }))
+    .sort((a, b) => b.faltasConsecutivas - a.faltasConsecutivas);
 };
 
 // ─── Helpers para série temporal ────────────────────────────────────────────────

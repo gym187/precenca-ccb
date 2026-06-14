@@ -82,7 +82,7 @@ export default function Dashboard() {
         const [contRes, anivRes, faltasRes] = await Promise.all([
           api.get('/continuacoes'),
           api.get('/dashboard/aniversariantes'),
-          api.get('/dashboard/faltas-consecutivas?minFaltas=3'),
+          api.get('/dashboard/faltas-consecutivas?minFaltas=2'),
         ])
         setContinuacoes(contRes.data)
         setAniversariantes(anivRes.data)
@@ -351,7 +351,7 @@ export default function Dashboard() {
           <div className="divide-y divide-stone-50 dark:divide-stone-800 max-h-80 overflow-y-auto">
             {faltas.length === 0 ? (
               <p className="px-5 py-8 text-sm text-stone-400 dark:text-stone-500 text-center">
-                Nenhuma falta registrada nos últimos 30 dias.
+                Nenhuma falta consecutiva no momento.
               </p>
             ) : (
               faltas.map((c) => {
@@ -373,7 +373,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full text-xs font-semibold">
-                        {c.faltasNoPeriodo} falta(s)
+                        {c.faltasConsecutivas} falta(s) seguidas
                       </span>
                       {telLimpo && (
                         <a
