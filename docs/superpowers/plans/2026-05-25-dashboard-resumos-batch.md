@@ -299,7 +299,7 @@ git push origin main
 
 No servidor (192.168.10.10):
 ```bash
-sshpass -p '75Quilos.' ssh ops@192.168.10.10 "cd ~/precenca-ccb && git pull && ./deploy.sh"
+ssh ops@192.168.10.10 "cd ~/precenca-ccb && git pull && ./deploy.sh"
 ```
 
 - [ ] **Step 2: Validar em produção**
@@ -312,7 +312,7 @@ Acessar o sistema em produção, abrir o Dashboard e verificar que:
 - [ ] **Step 3: Verificar logs do servidor**
 
 ```bash
-sshpass -p '75Quilos.' ssh ops@192.168.10.10 "docker logs ccb_app --tail=30 2>&1 | grep dashboard"
+ssh ops@192.168.10.10 "docker logs ccb_app --tail=30 2>&1 | grep dashboard"
 ```
 
 Saída esperada: uma linha de log `GET /api/dashboard/resumos 200 Xms` por acesso ao Dashboard, em vez de 13 linhas.
