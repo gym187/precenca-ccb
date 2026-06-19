@@ -110,12 +110,12 @@ const aniversariantesMes = async ({ continuacaoId, mes } = {}, usuario) => {
   });
 
   return criancas
-    .filter((c) => new Date(c.dataNascimento).getMonth() + 1 === mesAtual)
+    .filter((c) => new Date(c.dataNascimento).getUTCMonth() + 1 === mesAtual)
     .map((c) => ({
       ...c,
-      idade: new Date().getFullYear() - new Date(c.dataNascimento).getFullYear(),
+      idade: new Date().getFullYear() - new Date(c.dataNascimento).getUTCFullYear(),
     }))
-    .sort((a, b) => new Date(a.dataNascimento).getDate() - new Date(b.dataNascimento).getDate());
+    .sort((a, b) => new Date(a.dataNascimento).getUTCDate() - new Date(b.dataNascimento).getUTCDate());
 };
 
 // ─── Faltas consecutivas ────────────────────────────────────────────────────

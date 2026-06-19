@@ -451,7 +451,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-rose-500 dark:text-rose-400 font-semibold">
-                      {new Date(c.dataNascimento).toLocaleDateString('pt-BR', {
+                      {new Date(c.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit',
                       })}
@@ -665,7 +665,7 @@ export default function Dashboard() {
                   <p className="text-sm text-stone-500 dark:text-stone-400">{criancaDetalhe.crianca?.continuacao?.nome}</p>
                   {criancaDetalhe.crianca?.dataNascimento && (
                     <p className="text-xs text-stone-400 dark:text-stone-500">
-                      Nascimento: {new Date(criancaDetalhe.crianca.dataNascimento).toLocaleDateString('pt-BR')}
+                      Nascimento: {new Date(criancaDetalhe.crianca.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')}
                     </p>
                   )}
                 </div>

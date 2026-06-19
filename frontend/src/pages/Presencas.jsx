@@ -277,7 +277,7 @@ export default function Presencas() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-stone-800">{c.nomeCompleto}</p>
                       <p className="text-xs text-stone-400">
-                        {new Date(c.dataNascimento).toLocaleDateString('pt-BR')}
+                        {new Date(c.dataNascimento.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')}
                       </p>
                       {presencaMap[c.id] === 'justificado' && (
                         <div className="mt-1.5 flex items-center gap-1.5">
